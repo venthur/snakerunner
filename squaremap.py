@@ -41,6 +41,7 @@ class SquareMap( wx.Panel ):
 
     def setModel( self, model ):
         self.model = model
+        self.Refresh()
     def OnDraw( self, event ):
         dc = wx.PaintDC( self )
         self.hot_map = []
@@ -72,15 +73,15 @@ class SquareMap( wx.Panel ):
         y += self.PADDING*5
         w -= self.PADDING*2
         h -= self.PADDING*6
-        if w >0 and h> 0:
+        if w >1 and h> 1:
             children = self.children( node )
             if children:
-                self.layout_children( dc, children, x,y,w,h, children_hot_map, depth+1 )
-    def layout_children( self, dc, children, x,y,w,h, hot_map, depth=0 ):
+                self.layout_children( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
+    def layout_children( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
-        nodes = [ (node.size,node) for node in children ]
+        nodes = [ (self.value(node,parent),node) for node in children ]
         nodes.sort()
-        total = sum([size for (size,node) in nodes] )
+        total = self.overall( parent )
         if total:
             (firstSize,firstNode) = nodes[-1]
             rest = [node for (size,node) in nodes[:-1]]
@@ -98,11 +99,15 @@ class SquareMap( wx.Panel ):
                 h = h-new_h
                 y += new_h 
             if rest:
-                self.layout_children( dc, rest, x,y,w,h, hot_map, depth )
+                self.layout_children( dc, rest, parent, x,y,w,h, hot_map, depth )
     def children( self, node ):
         return node.children
-    def value( self, node ):
-        return node.size 
+    def value( self, node, parent=None ):
+        return node.size
+    def label( self, node ):
+        return node.path
+    def overall( self, node ):
+        return sum( [self.value(value) for value in node.children] )
 
 class TestApp(wx.App):
     """Basic application for holding the viewing Frame"""
@@ -130,7 +135,7 @@ class TestApp(wx.App):
                     nodes.append( self.get_model( full ))
         return Node( path, sum([x.size for x in nodes]), nodes )
     def OnSquareSelected( self, event ):
-        self.frame.SetStatusText( event.node.path )
+        self.frame.SetStatusText( self.sq.label( event.node ) )
 
 class Node( object ):
     def __init__( self, path, size, children ):
