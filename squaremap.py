@@ -73,6 +73,12 @@ class SquareMap( wx.Panel ):
         y += self.PADDING*5
         w -= self.PADDING*2
         h -= self.PADDING*6
+        
+        empty = self.empty( node )
+        if empty:
+            # is a fraction of the space which is empty...
+            h = h * (1.0-empty)
+        
         if w >1 and h> 1:
             children = self.children( node )
             if children:
@@ -81,7 +87,7 @@ class SquareMap( wx.Panel ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.value(node,parent),node) for node in children ]
         nodes.sort()
-        total = self.overall( parent )
+        total = self.children_sum( children,parent )
         if total:
             (firstSize,firstNode) = nodes[-1]
             rest = [node for (size,node) in nodes[:-1]]
@@ -107,7 +113,14 @@ class SquareMap( wx.Panel ):
     def label( self, node ):
         return node.path
     def overall( self, node ):
-        return sum( [self.value(value) for value in node.children] )
+        return sum( [self.value(value,node) for value in node.children] )
+    def children_sum( self, children,node ):
+        return sum( [self.value(value,node) for value in children] )
+    def empty( self, node ):
+        overall = self.overall( node )
+        if overall:
+            return (overall - self.children_sum( node.children, node))/float(overall)
+        return 0
 
 class TestApp(wx.App):
     """Basic application for holding the viewing Frame"""
