@@ -30,6 +30,8 @@ class SquareMap( wx.Panel ):
         self.hot_map = []
         self.adapter = adapter or DefaultAdapter()
 #		self.Bind( wx.EVT_SIZE, self.OnResize )
+        self.DEFAULT_PEN = wx.Pen( wx.BLACK, 1, wx.SOLID )
+        self.SELECTED_PEN = wx.Pen( wx.WHITE, 2, wx.SOLID )
 
     def OnMouse( self, event ):
         """Handle mouse-move event by selecting a given element"""
@@ -82,15 +84,25 @@ class SquareMap( wx.Panel ):
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
     
-    def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
-        """Draw a model-node's box and all children nodes"""
+    
+    def BrushForNode( self, node, depth=0 ):
+        """Create brush to use to display the given node"""
         if node is self.highlighted:
             color = wx.Color( (depth * 5)%255, (255-(depth * 5))%255, 0 )
         else:
             color = wx.Color( (depth * 10)%255, (255-(depth * 10))%255, 255 )
-        brush = wx.Brush( color  )
-        dc.SetBrush( brush )
-        dc.DrawRectangle( x,y,w,h )
+        return wx.Brush( color  )
+    def PenForNode( self, node, depth=0 ):
+        """Determine the pen to use to display the given node"""
+        if node is self.selected:
+            return self.SELECTED_PEN
+        return self.DEFAULT_PEN
+    
+    def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
+        """Draw a model-node's box and all children nodes"""
+        dc.SetBrush( self.BrushForNode( node, depth ) )
+        dc.SetPen( self.PenForNode( node, depth ) )
+        dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
         x += self.padding
@@ -101,9 +113,11 @@ class SquareMap( wx.Panel ):
         empty = self.adapter.empty( node )
         if empty:
             # is a fraction of the space which is empty...
-            h = h * (1.0-empty)
+            new_h = h * (1.0-empty)
+            y += (h-new_h)
+            h = new_h
         
-        if w >1 and h> 1:
+        if w >self.padding*2 and h> self.padding*2:
             children = self.adapter.children( node )
             if children:
                 self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
