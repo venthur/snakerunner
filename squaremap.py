@@ -3,91 +3,115 @@ import wx, sys, os
 import  wx
 import  wx.lib.newevent
 
+SquareHighlightEvent, EVT_SQUARE_HIGHLIGHTED = wx.lib.newevent.NewEvent()
 SquareSelectionEvent, EVT_SQUARE_SELECTED = wx.lib.newevent.NewEvent()
 
 class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
+    highlighted = None
     selected = None
+    
+    BackgroundColor = wx.Color( 128,128,128 )
+    
     def __init__( 
         self,  parent=None, id=-1, pos=wx.DefaultPosition, 
         size=wx.DefaultSize, style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE, 
         name='SquareMap', model = None,
+        adapter = None,
+        padding = 2, # amount to reduce the children's box from the parent's box
     ):
         super( SquareMap, self ).__init__(
             parent, id, pos, size, style, name
         )
         self.model = model
+        self.padding = padding
         self.Bind( wx.EVT_PAINT, self.OnDraw )
         self.Bind( wx.EVT_MOTION, self.OnMouse )
         self.hot_map = []
+        self.adapter = adapter or DefaultAdapter()
 #		self.Bind( wx.EVT_SIZE, self.OnResize )
 
     def OnMouse( self, event ):
         """Handle mouse-move event by selecting a given element"""
-        node = self._OnMouse( event.GetPosition(), self.hot_map )
-        if node != self.selected:
-            self.Refresh()
-        self.selected = node
-        if node:
-            wx.PostEvent( self, SquareSelectionEvent( node=node, point=event.GetPosition(), map=self ) )
-    def _OnMouse( self, point, hot_map ):
+        node = self.NodeFromPosition( event.GetPosition() )
+        self.SetHighlight( node, event.GetPosition() )
+    
+    def NodeFromPosition( self, position, hot_map=None ):
+        """Retrieve the node at the given position"""
+        if hot_map is None:
+            hot_map = self.hot_map
         for rect,node,children in hot_map:
-            if rect.Contains( point ):
-                child = self._OnMouse( point, children )
+            if rect.Contains( position ):
+                child = self.NodeFromPosition( position, children )
                 if child:
                     return child 
                 return node
         return None
-
-    def setModel( self, model ):
+        
+    def SetSelected( self, node, point=None ):
+        """Set the given node selected in the square-map"""
+        previous = self.selected
+        self.selected = node 
+        if node != previous:
+            self.Refresh()
+        if node:
+            wx.PostEvent( self, SquareSelectionEvent( node=node, point=point, map=self ) )
+    def SetHighlight( self, node, point=None ):
+        """Set the currently-highlighted node"""
+        previous = self.highlighted
+        self.highlighted = node 
+        if node != previous:
+            self.Refresh()
+        if node:
+            wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
+    def SetModel( self, model ):
+        """Set our model object (root of the tree)"""
         self.model = model
         self.Refresh()
+    
+    
     def OnDraw( self, event ):
+        """Event handler to draw our node-map into the device context"""
         dc = wx.PaintDC( self )
-        self.hot_map = []
         if self.model:
+            self.hot_map = []
             # draw the root box...
-            color = wx.Color( 128,128,128 )
-            brush = wx.Brush( color  )
+            brush = wx.Brush( self.BackgroundColor  )
             dc.SetBackground( brush )
             dc.Clear()
             w, h = dc.GetSize()
-            self.drawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
-    SCALE_CHILDREN = .95
-    PADDING = 4
-    def drawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
+            self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
+    
+    def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
-        if node is self.selected:
+        if node is self.highlighted:
             color = wx.Color( (depth * 5)%255, (255-(depth * 5))%255, 0 )
         else:
             color = wx.Color( (depth * 10)%255, (255-(depth * 10))%255, 255 )
         brush = wx.Brush( color  )
         dc.SetBrush( brush )
         dc.DrawRectangle( x,y,w,h )
-#        dc.SetClippingRegion( x,y, w, h )
-#        dc.DrawText( node.path, x,y,  )
-#        dc.DestroyClippingRegion()
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
-        x += self.PADDING
-        y += self.PADDING*5
-        w -= self.PADDING*2
-        h -= self.PADDING*6
+        x += self.padding
+        y += self.padding
+        w -= self.padding*2
+        h -= self.padding*2
         
-        empty = self.empty( node )
+        empty = self.adapter.empty( node )
         if empty:
             # is a fraction of the space which is empty...
             h = h * (1.0-empty)
         
         if w >1 and h> 1:
-            children = self.children( node )
+            children = self.adapter.children( node )
             if children:
-                self.layout_children( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
-    def layout_children( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
+                self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
+    def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
-        nodes = [ (self.value(node,parent),node) for node in children ]
+        nodes = [ (self.adapter.value(node,parent),node) for node in children ]
         nodes.sort()
-        total = self.children_sum( children,parent )
+        total = self.adapter.children_sum( children,parent )
         if total:
             (firstSize,firstNode) = nodes[-1]
             rest = [node for (size,node) in nodes[:-1]]
@@ -95,31 +119,40 @@ class SquareMap( wx.Panel ):
             if w >= h:
                 new_w = int(w*fraction)
                 if new_w:
-                    self.drawBox( dc, firstNode, x,y, new_w, h, hot_map, depth+1 )
+                    self.DrawBox( dc, firstNode, x,y, new_w, h, hot_map, depth+1 )
                 w = w-new_w
                 x += new_w 
             else:
                 new_h = int(h*fraction)
                 if new_h:
-                    self.drawBox( dc, firstNode, x,y, w, new_h, hot_map, depth + 1 )
+                    self.DrawBox( dc, firstNode, x,y, w, new_h, hot_map, depth + 1 )
                 h = h-new_h
                 y += new_h 
             if rest:
-                self.layout_children( dc, rest, parent, x,y,w,h, hot_map, depth )
+                self.LayoutChildren( dc, rest, parent, x,y,w,h, hot_map, depth )
+
+class DefaultAdapter( object ):
+    """Default adapter class for adapting node-trees to SquareMap API"""
     def children( self, node ):
+        """Retrieve the set of nodes which are children of this node"""
         return node.children
     def value( self, node, parent=None ):
+        """Return value used to compare size of this node"""
         return node.size
     def label( self, node ):
+        """Return textual description of this node"""
         return node.path
     def overall( self, node ):
-        return sum( [self.value(value,node) for value in node.children] )
+        """Calculate overall size of the node including children and empty space"""
+        return sum( [self.value(value,node) for value in self.children(node)] )
     def children_sum( self, children,node ):
+        """Calculate children's total sum"""
         return sum( [self.value(value,node) for value in children] )
     def empty( self, node ):
+        """Calculate empty space as a fraction of total space"""
         overall = self.overall( node )
         if overall:
-            return (overall - self.children_sum( node.children, node))/float(overall)
+            return (overall - self.children_sum( self.children(node), node))/float(overall)
         return 0
 
 class TestApp(wx.App):
@@ -133,7 +166,7 @@ class TestApp(wx.App):
         
         model = model = self.get_model( sys.argv[1]) 
         self.sq = SquareMap( frame, model=model)
-        EVT_SQUARE_SELECTED( self.sq, self.OnSquareSelected )
+        EVT_SQUARE_HIGHLIGHTED( self.sq, self.OnSquareSelected )
         frame.Show(True)
         self.SetTopWindow(frame)
         return True
@@ -148,9 +181,10 @@ class TestApp(wx.App):
                     nodes.append( self.get_model( full ))
         return Node( path, sum([x.size for x in nodes]), nodes )
     def OnSquareSelected( self, event ):
-        self.frame.SetStatusText( self.sq.label( event.node ) )
+        self.frame.SetStatusText( self.sq.adapter.label( event.node ) )
 
 class Node( object ):
+    """Really dumb file-system node object"""
     def __init__( self, path, size, children ):
         self.path = path
         self.size = size
