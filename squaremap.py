@@ -66,9 +66,11 @@ class SquareMap( wx.Panel ):
             self.Refresh()
         if node:
             wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
-    def SetModel( self, model ):
+    def SetModel( self, model, adapter=None ):
         """Set our model object (root of the tree)"""
         self.model = model
+        if adapter is not None:
+            self.adapter = adapter
         self.Refresh()
     
     
