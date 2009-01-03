@@ -58,13 +58,13 @@ class SquareMap( wx.Panel ):
             self.Refresh()
         if node:
             wx.PostEvent( self, SquareSelectionEvent( node=node, point=point, map=self ) )
-    def SetHighlight( self, node, point=None ):
+    def SetHighlight( self, node, point=None, propagate=True ):
         """Set the currently-highlighted node"""
         previous = self.highlighted
         self.highlighted = node 
         if node != previous:
             self.Refresh()
-        if node:
+        if node and propagate:
             wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
     def SetModel( self, model, adapter=None ):
         """Set our model object (root of the tree)"""
@@ -82,6 +82,7 @@ class SquareMap( wx.Panel ):
             # draw the root box...
             brush = wx.Brush( self.BackgroundColor  )
             dc.SetBackground( brush )
+            pen = wx
             dc.Clear()
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
@@ -90,13 +91,21 @@ class SquareMap( wx.Panel ):
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
         if node is self.highlighted:
-            color = wx.Color( (depth * 5)%255, (255-(depth * 5))%255, 0 )
+            red = blue = 0
+            green = 255
         else:
-            color = wx.Color( (depth * 10)%255, (255-(depth * 10))%255, 255 )
+            red = (depth * 10)%255
+            green = 255-((depth * 10)%255)
+            blue = 200
+        if node is self.selected:
+            red = green = 0
+            blue = 255
+        color = wx.Color( red, green, blue )
         return wx.Brush( color  )
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
         if node is self.selected:
+            print 'found selected'
             return self.SELECTED_PEN
         return self.DEFAULT_PEN
     
