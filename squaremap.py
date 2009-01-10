@@ -4,6 +4,7 @@ import wx.lib.newevent
 
 SquareHighlightEvent, EVT_SQUARE_HIGHLIGHTED = wx.lib.newevent.NewEvent()
 SquareSelectionEvent, EVT_SQUARE_SELECTED = wx.lib.newevent.NewEvent()
+SquareActivationEvent, EVT_SQUARE_ACTIVATED = wx.lib.newevent.NewEvent()
 
 class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
@@ -27,6 +28,7 @@ class SquareMap( wx.Panel ):
         self.Bind( wx.EVT_PAINT, self.OnDraw )
         self.Bind( wx.EVT_MOTION, self.OnMouse )
         self.Bind( wx.EVT_LEFT_UP, self.OnClickRelease )
+        self.Bind( wx.EVT_LEFT_DCLICK, self.OnDoubleClick )
         self.hot_map = []
         self.adapter = adapter or DefaultAdapter()
 #		self.Bind( wx.EVT_SIZE, self.OnResize )
@@ -41,6 +43,12 @@ class SquareMap( wx.Panel ):
         """Release over a given square in the map"""
         node = self.NodeFromPosition( event.GetPosition() )
         self.SetSelected( node, event.GetPosition() )
+        
+    def OnDoubleClick(self, event):
+        """Double click on a given square in the map"""
+        node = self.NodeFromPosition(event.GetPosition())
+        if node:
+            wx.PostEvent( self, SquareActivationEvent( node=node, point=event.GetPosition(), map=self ) )
     
     def NodeFromPosition( self, position, hot_map=None ):
         """Retrieve the node at the given position"""
