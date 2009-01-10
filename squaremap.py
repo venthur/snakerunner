@@ -27,6 +27,7 @@ class SquareMap( wx.Panel ):
         self.padding = padding
         self.Bind( wx.EVT_PAINT, self.OnDraw )
         self.Bind( wx.EVT_MOTION, self.OnMouse )
+        self.Bind( wx.EVT_LEFT_UP, self.OnClickRelease )
         self.hot_map = []
         self.adapter = adapter or DefaultAdapter()
 #		self.Bind( wx.EVT_SIZE, self.OnResize )
@@ -37,6 +38,10 @@ class SquareMap( wx.Panel ):
         """Handle mouse-move event by selecting a given element"""
         node = self.NodeFromPosition( event.GetPosition() )
         self.SetHighlight( node, event.GetPosition() )
+    def OnClickRelease( self, event ):
+        """Release over a given square in the map"""
+        node = self.NodeFromPosition( event.GetPosition() )
+        self.SetSelected( node, event.GetPosition() )
     
     def NodeFromPosition( self, position, hot_map=None ):
         """Retrieve the node at the given position"""
@@ -50,7 +55,7 @@ class SquareMap( wx.Panel ):
                 return node
         return None
         
-    def SetSelected( self, node, point=None ):
+    def SetSelected( self, node, point=None, propagate=True ):
         """Set the given node selected in the square-map"""
         previous = self.selected
         self.selected = node 
