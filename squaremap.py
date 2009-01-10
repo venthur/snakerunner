@@ -86,26 +86,25 @@ class SquareMap( wx.Panel ):
             # draw the root box...
             brush = wx.Brush( self.BackgroundColor  )
             dc.SetBackground( brush )
-            pen = wx
             dc.Clear()
+            dc.SetFont(wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT))
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
     
     
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
-        if node is self.highlighted:
-            red = blue = 0
-            green = 255
+        if node is self.selected:
+            color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+        elif node is self.highlighted:
+            color = wx.Color( red=0, green=255, blue=0 )
         else:
             red = (depth * 10)%255
             green = 255-((depth * 10)%255)
             blue = 200
-        if node is self.selected:
-            red = green = 0
-            blue = 255
-        color = wx.Color( red, green, blue )
+            color = wx.Color( red, green, blue )
         return wx.Brush( color  )
+    
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
         if node is self.selected:
@@ -117,6 +116,8 @@ class SquareMap( wx.Panel ):
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
+        brush = wx.Brush(self.BackgroundColor)
+        dc.DrawText(self.adapter.label(node), x+2, y)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
         x += self.padding
