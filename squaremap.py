@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 import wx, sys, os
-import  wx
-import  wx.lib.newevent
+import wx.lib.newevent
 
 SquareHighlightEvent, EVT_SQUARE_HIGHLIGHTED = wx.lib.newevent.NewEvent()
 SquareSelectionEvent, EVT_SQUARE_SELECTED = wx.lib.newevent.NewEvent()
+SquareActivationEvent, EVT_SQUARE_ACTIVATED = wx.lib.newevent.NewEvent()
 
 class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
@@ -15,9 +15,11 @@ class SquareMap( wx.Panel ):
     
     def __init__( 
         self,  parent=None, id=-1, pos=wx.DefaultPosition, 
-        size=wx.DefaultSize, style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE, 
+        size=wx.DefaultSize, 
+        style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE, 
         name='SquareMap', model = None,
         adapter = None,
+        labels = True, # set to True to draw textual labels within the boxes
         padding = 2, # amount to reduce the children's box from the parent's box
     ):
         super( SquareMap, self ).__init__(
@@ -25,23 +27,33 @@ class SquareMap( wx.Panel ):
         )
         self.model = model
         self.padding = padding
-        self.Bind( wx.EVT_PAINT, self.OnDraw )
+        self.labels = labels
+        self.Bind( wx.EVT_PAINT, self.OnPaint)
+        self.Bind( wx.EVT_SIZE, self.OnSize )
         self.Bind( wx.EVT_MOTION, self.OnMouse )
         self.Bind( wx.EVT_LEFT_UP, self.OnClickRelease )
+        self.Bind( wx.EVT_LEFT_DCLICK, self.OnDoubleClick )
         self.hot_map = []
         self.adapter = adapter or DefaultAdapter()
-#		self.Bind( wx.EVT_SIZE, self.OnResize )
         self.DEFAULT_PEN = wx.Pen( wx.BLACK, 1, wx.SOLID )
         self.SELECTED_PEN = wx.Pen( wx.WHITE, 2, wx.SOLID )
-
+        self.OnSize(None)
+        
     def OnMouse( self, event ):
         """Handle mouse-move event by selecting a given element"""
         node = self.NodeFromPosition( event.GetPosition() )
         self.SetHighlight( node, event.GetPosition() )
+
     def OnClickRelease( self, event ):
         """Release over a given square in the map"""
         node = self.NodeFromPosition( event.GetPosition() )
         self.SetSelected( node, event.GetPosition() )
+        
+    def OnDoubleClick(self, event):
+        """Double click on a given square in the map"""
+        node = self.NodeFromPosition(event.GetPosition())
+        if node:
+            wx.PostEvent( self, SquareActivationEvent( node=node, point=event.GetPosition(), map=self ) )
     
     def NodeFromPosition( self, position, hot_map=None ):
         """Retrieve the node at the given position"""
@@ -63,6 +75,7 @@ class SquareMap( wx.Panel ):
             self.Refresh()
         if node:
             wx.PostEvent( self, SquareSelectionEvent( node=node, point=point, map=self ) )
+
     def SetHighlight( self, node, point=None, propagate=True ):
         """Set the currently-highlighted node"""
         previous = self.highlighted
@@ -71,42 +84,59 @@ class SquareMap( wx.Panel ):
             self.Refresh()
         if node and propagate:
             wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
+
     def SetModel( self, model, adapter=None ):
         """Set our model object (root of the tree)"""
         self.model = model
         if adapter is not None:
             self.adapter = adapter
         self.Refresh()
+        
+    def Refresh(self):
+        self.UpdateDrawing()
     
-    
-    def OnDraw( self, event ):
-        """Event handler to draw our node-map into the device context"""
-        dc = wx.PaintDC( self )
+    def OnPaint(self, event):
+        dc = wx.BufferedPaintDC(self, self._Buffer)
+
+    def OnSize(self, event):
+        # The Buffer is initialized in OnSize, so that the buffer is always
+        # the same size as the Window.
+        self.Width, self.Height = self.GetClientSizeTuple()
+        # Make new off screen bitmap: this bitmap will always have the
+        # current drawing in it, so it can be used to save the image to
+        # a file, or whatever.
+        self._Buffer = wx.EmptyBitmap(self.Width, self.Height)
+        self.UpdateDrawing()
+
+    def UpdateDrawing(self):
+        dc = wx.BufferedDC(wx.ClientDC(self), self._Buffer)
+        self.Draw(dc)
+        
+    def Draw(self, dc):
         if self.model:
             self.hot_map = []
-            # draw the root box...
+            dc.BeginDrawing()
             brush = wx.Brush( self.BackgroundColor  )
             dc.SetBackground( brush )
-            pen = wx
             dc.Clear()
+            dc.SetFont(wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT))
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
-    
-    
+            dc.EndDrawing()
+   
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
-        if node is self.highlighted:
-            red = blue = 0
-            green = 255
+        if node is self.selected:
+            color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+        elif node is self.highlighted:
+            color = wx.Color( red=0, green=255, blue=0 )
         else:
             red = (depth * 10)%255
             green = 255-((depth * 10)%255)
             blue = 200
-        if node is self.selected:
-            red = green = 0
-            blue = 255
-        color = wx.Color( red, green, blue )
+            color = wx.Color( red, green, blue )
         return wx.Brush( color  )
+    
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
         if node is self.selected:
@@ -118,6 +148,11 @@ class SquareMap( wx.Panel ):
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
+        if self.labels:
+            brush = wx.Brush(self.BackgroundColor)
+            # TODO: only draw if we have enough room (otherwise turns into 
+            # a huge mess if you have lots of heavily nested boxes.
+            dc.DrawText(self.adapter.label(node), x+2, y)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
         x += self.padding
@@ -136,6 +171,7 @@ class SquareMap( wx.Panel ):
             children = self.adapter.children( node )
             if children:
                 self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
+
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
