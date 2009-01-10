@@ -110,7 +110,6 @@ class SquareMap( wx.Panel ):
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
         if node is self.selected:
-            print 'found selected'
             return self.SELECTED_PEN
         return self.DEFAULT_PEN
     
