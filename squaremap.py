@@ -131,10 +131,12 @@ class SquareMap( wx.Panel ):
         elif node is self.highlighted:
             color = wx.Color( red=0, green=255, blue=0 )
         else:
-            red = (depth * 10)%255
-            green = 255-((depth * 10)%255)
-            blue = 200
-            color = wx.Color( red, green, blue )
+            color = self.adapter.background_color(node, depth)
+            if not color:
+                red = (depth * 10)%255
+                green = 255-((depth * 10)%255)
+                blue = 200
+                color = wx.Color( red, green, blue )
         return wx.Brush( color  )
     
     def PenForNode( self, node, depth=0 ):
@@ -142,6 +144,17 @@ class SquareMap( wx.Panel ):
         if node is self.selected:
             return self.SELECTED_PEN
         return self.DEFAULT_PEN
+
+    def TextForegroundForNode(self, node, depth=0):
+        """Determine the text foreground color to use to display the label of
+           the given node"""
+        if node is self.selected:
+	    fg_color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
+        else:
+            fg_color = self.adapter.foreground_color(node, depth)
+            if not fg_color:
+	        fg_color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        return fg_color
     
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
@@ -149,9 +162,9 @@ class SquareMap( wx.Panel ):
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
         if self.labels:
-            brush = wx.Brush(self.BackgroundColor)
             # TODO: only draw if we have enough room (otherwise turns into 
             # a huge mess if you have lots of heavily nested boxes.
+            dc.SetTextForeground(self.TextForegroundForNode(node, depth))
             dc.DrawText(self.adapter.label(node), x+2, y)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
@@ -219,6 +232,11 @@ class DefaultAdapter( object ):
         if overall:
             return (overall - self.children_sum( self.children(node), node))/float(overall)
         return 0
+    def background_color(self, node, depth):
+        return None
+    def foreground_color(self, node, depth):
+        return None
+
 
 class TestApp(wx.App):
     """Basic application for holding the viewing Frame"""
