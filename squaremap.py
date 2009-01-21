@@ -123,6 +123,11 @@ class SquareMap( wx.Panel ):
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
             dc.EndDrawing()
+        else:
+            dc.BeginDrawing()
+            brush = wx.Brush( self.BackgroundColor  )
+            dc.SetBackground( brush )
+            dc.Clear()
    
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
