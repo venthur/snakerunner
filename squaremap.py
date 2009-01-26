@@ -175,34 +175,42 @@ class SquareMap( wx.Panel ):
         self.UpdateDrawing()
     
     def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self, self._Buffer)
+        dc = wx.BufferedPaintDC(self, self._buffer)
 
     def OnSize(self, event):
-        # The Buffer is initialized in OnSize, so that the buffer is always
+        # The buffer is initialized in here, so that the buffer is always
         # the same size as the Window.
-        self.Width, self.Height = self.GetClientSizeTuple()
-        # Make new off screen bitmap: this bitmap will always have the
+        width, height = self.GetClientSizeTuple()
+        # Make new off-screen bitmap: this bitmap will always have the
         # current drawing in it, so it can be used to save the image to
         # a file, or whatever.
-        self._Buffer = wx.EmptyBitmap(self.Width, self.Height)
+        self._buffer = wx.EmptyBitmap(width, height)
         self.UpdateDrawing()
 
     def UpdateDrawing(self):
-        dc = wx.BufferedDC(wx.ClientDC(self), self._Buffer)
+        dc = wx.BufferedDC(wx.ClientDC(self), self._buffer)
         self.Draw(dc)
         
     def Draw(self, dc):
+        ''' Draw the tree map on the device context. '''
         self.hot_map = []
         dc.BeginDrawing()
         brush = wx.Brush( self.BackgroundColor  )
         dc.SetBackground( brush )
         dc.Clear()
         if self.model:
-            dc.SetFont(wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT))
+            dc.SetFont(self.FontForLabels(dc))
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
         dc.EndDrawing()
-   
+        
+    def FontForLabels(self, dc):
+        ''' Return the default GUI font, scaled for printing if necessary. '''
+        font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        scale = dc.GetPPI()[0] / wx.ScreenDC().GetPPI()[0]
+        font.SetPointSize(scale*font.GetPointSize())
+        return font
+    
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
         if node == self.selectedNode:
@@ -240,9 +248,7 @@ class SquareMap( wx.Panel ):
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
-        if self.labels and h >= dc.GetTextExtent('ABC')[1]:
-            dc.SetTextForeground(self.TextForegroundForNode(node, depth))
-            dc.DrawText(self.adapter.label(node), x+2, y)
+        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
         x += self.padding
@@ -261,7 +267,21 @@ class SquareMap( wx.Panel ):
             children = self.adapter.children( node )
             if children:
                 self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
-
+                
+    def DrawIconAndLabel(self, dc, node, x, y, w, h, depth):
+        ''' Draw the icon, if any, and the label, if any, of the node. '''
+        dc.SetClippingRegion(x+1, y+1, w-2, h-2) # Don't draw outside the box
+        icon = self.adapter.icon(node, node==self.selectedNode)
+        if icon and h >= icon.GetHeight() and w >= icon.GetWidth():
+            iconWidth = icon.GetWidth() + 2
+            dc.DrawIcon(icon, x+2, y+2) 
+        else:
+            iconWidth = 0
+        if self.labels and h >= dc.GetTextExtent('ABC')[1]:
+            dc.SetTextForeground(self.TextForegroundForNode(node, depth))
+            dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
+        dc.DestroyClippingRegion()
+        
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
@@ -285,6 +305,7 @@ class SquareMap( wx.Panel ):
                 y += new_h 
             if rest:
                 self.LayoutChildren( dc, rest, parent, x,y,w,h, hot_map, depth )
+
 
 class DefaultAdapter( object ):
     """Default adapter class for adapting node-trees to SquareMap API"""
@@ -310,8 +331,13 @@ class DefaultAdapter( object ):
             return (overall - self.children_sum( self.children(node), node))/float(overall)
         return 0
     def background_color(self, node, depth):
+        ''' The color to use as background color of the node. '''
         return None
     def foreground_color(self, node, depth):
+        ''' The color to use for the label. '''
+        return None
+    def icon(self, node, isSelected):
+        ''' The icon to display in the node. '''
         return None
 
 
