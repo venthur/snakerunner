@@ -339,6 +339,9 @@ class DefaultAdapter( object ):
     def icon(self, node, isSelected):
         ''' The icon to display in the node. '''
         return None
+    def parents( self, node ):
+        """Retrieve/calculate the set of parents for the given node"""
+        return []
 
 
 class TestApp(wx.App):
