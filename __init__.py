@@ -1,1 +1,2 @@
-from squaremap.version import __version__
+"""Hierarchic data-viewing widget for wxPython"""
+__version__ = '1.0.0b1'
