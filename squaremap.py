@@ -295,15 +295,19 @@ class SquareMap( wx.Panel ):
                 new_w = int(w*fraction)
                 if new_w:
                     self.DrawBox( dc, firstNode, x,y, new_w, h, hot_map, depth+1 )
+                else:
+                    return # no other node will show up as non-0 either
                 w = w-new_w
                 x += new_w 
             else:
                 new_h = int(h*fraction)
                 if new_h:
                     self.DrawBox( dc, firstNode, x,y, w, new_h, hot_map, depth + 1 )
+                else:
+                    return # no other node will show up as non-0 either
                 h = h-new_h
                 y += new_h 
-            if rest:
+            if rest and (h > self.padding*2) and (w > self.padding*2):
                 self.LayoutChildren( dc, rest, parent, x,y,w,h, hot_map, depth )
 
 
