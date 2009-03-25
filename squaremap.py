@@ -248,7 +248,7 @@ class SquareMap( wx.Panel ):
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
-        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
+#        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
         x += self.padding
@@ -257,9 +257,12 @@ class SquareMap( wx.Panel ):
         h -= self.padding*2
         
         empty = self.adapter.empty( node )
+        icon_drawn = False
         if empty:
             # is a fraction of the space which is empty...
             new_h = h * (1.0-empty)
+            self.DrawIconAndLabel(dc, node, x, y, w, h-new_h, depth)
+            icon_drawn = True
             y += (h-new_h)
             h = new_h
         
@@ -267,6 +270,9 @@ class SquareMap( wx.Panel ):
             children = self.adapter.children( node )
             if children:
                 self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
+            else:
+                if not icon_drawn:
+                    self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
                 
     def DrawIconAndLabel(self, dc, node, x, y, w, h, depth):
         ''' Draw the icon, if any, and the label, if any, of the node. '''
