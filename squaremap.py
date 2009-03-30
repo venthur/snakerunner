@@ -389,7 +389,8 @@ class TestApp(wx.App):
                     nodes.append( self.get_model( full ))
         return Node( path, sum([x.size for x in nodes]), nodes )
     def OnSquareSelected( self, event ):
-        self.frame.SetStatusText( self.sq.adapter.label( event.node ) )
+        text = self.sq.adapter.label( event.node )
+        self.frame.SetToolTipString( text )
 
 class Node( object ):
     """Really dumb file-system node object"""
