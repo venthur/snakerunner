@@ -69,6 +69,8 @@ class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
 
     BackgroundColor = wx.Color( 128,128,128 )
+    max_depth = None
+    max_depth_seen = None
     
     def __init__( 
         self,  parent=None, id=-1, pos=wx.DefaultPosition, 
@@ -199,6 +201,7 @@ class SquareMap( wx.Panel ):
         dc.SetBackground( brush )
         dc.Clear()
         if self.model:
+            self.max_depth_seen = 0
             dc.SetFont(self.FontForLabels(dc))
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
@@ -245,6 +248,9 @@ class SquareMap( wx.Panel ):
     
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
+        if self.max_depth and depth > self.max_depth:
+            return
+        self.max_depth_seen = max( (self.max_depth_seen,depth))
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
         dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
@@ -258,14 +264,17 @@ class SquareMap( wx.Panel ):
         
         empty = self.adapter.empty( node )
         icon_drawn = False
-        if empty:
+        if self.max_depth and depth == self.max_depth:
+            self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
+            icon_drawn = True
+        elif empty:
             # is a fraction of the space which is empty...
             new_h = h * (1.0-empty)
             self.DrawIconAndLabel(dc, node, x, y, w, h-new_h, depth)
             icon_drawn = True
             y += (h-new_h)
             h = new_h
-        
+            
         if w >self.padding*2 and h> self.padding*2:
             children = self.adapter.children( node )
             if children:
