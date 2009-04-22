@@ -1,6 +1,8 @@
 #! /usr/bin/env python
-import wx, sys, os
+import wx, sys, os, logging
 import wx.lib.newevent
+log = logging.getLogger( 'squaremap' )
+#log.setLevel( logging.DEBUG )
 
 SquareHighlightEvent, EVT_SQUARE_HIGHLIGHTED = wx.lib.newevent.NewEvent()
 SquareSelectionEvent, EVT_SQUARE_SELECTED = wx.lib.newevent.NewEvent()
@@ -248,6 +250,9 @@ class SquareMap( wx.Panel ):
     
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
+        log.debug( 'Draw: %s to (%s,%s,%s,%s) depth %s',
+            node, x,y,w,h, depth,
+        )
         if self.max_depth and depth > self.max_depth:
             return
         self.max_depth_seen = max( (self.max_depth_seen,depth))
@@ -269,6 +274,7 @@ class SquareMap( wx.Panel ):
             icon_drawn = True
         elif empty:
             # is a fraction of the space which is empty...
+            log.debug( '  empty space fraction: %s', empty )
             new_h = h * (1.0-empty)
             self.DrawIconAndLabel(dc, node, x, y, w, h-new_h, depth)
             icon_drawn = True
@@ -278,10 +284,14 @@ class SquareMap( wx.Panel ):
         if w >self.padding*2 and h> self.padding*2:
             children = self.adapter.children( node )
             if children:
+                log.debug( '  children: %s', children )
                 self.LayoutChildren( dc, children, node, x,y,w,h, children_hot_map, depth+1 )
             else:
+                log.debug( '  no children' )
                 if not icon_drawn:
                     self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
+        else:
+            log.debug( '  not enough space: children skipped' )
                 
     def DrawIconAndLabel(self, dc, node, x, y, w, h, depth):
         ''' Draw the icon, if any, and the label, if any, of the node. '''
