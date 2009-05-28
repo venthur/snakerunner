@@ -188,8 +188,10 @@ class SquareMap( wx.Panel ):
         # Make new off-screen bitmap: this bitmap will always have the
         # current drawing in it, so it can be used to save the image to
         # a file, or whatever.
-        self._buffer = wx.EmptyBitmap(width, height)
-        self.UpdateDrawing()
+        if width and height:
+            # Macs can generate events with 0-size values
+            self._buffer = wx.EmptyBitmap(width, height)
+            self.UpdateDrawing()
 
     def UpdateDrawing(self):
         dc = wx.BufferedDC(wx.ClientDC(self), self._buffer)
@@ -226,8 +228,8 @@ class SquareMap( wx.Panel ):
             color = self.adapter.background_color(node, depth)
             if not color:
                 red = (depth * 10)%255
-                green = 255-((depth * 10)%255)
-                blue = 200
+                green = 255-((depth * 5)%255)
+                blue = (depth * 25)%255
                 color = wx.Color( red, green, blue )
         return wx.Brush( color  )
     
@@ -258,7 +260,14 @@ class SquareMap( wx.Panel ):
         self.max_depth_seen = max( (self.max_depth_seen,depth))
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
-        dc.DrawRoundedRectangle( x,y,w,h, self.padding *3 )
+        if sys.platform == 'darwin':
+            # Macs don't like drawing small rounded rects...
+            if w < self.padding*2 or h < self.padding*2:
+                dc.DrawRectangle( x,y,w,h)
+            else:
+                dc.DrawRoundedRectangle( x,y,w,h, self.padding )
+        else:
+            dc.DrawRoundedRectangle( x,y,w,h, self.padding*3 )
 #        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
