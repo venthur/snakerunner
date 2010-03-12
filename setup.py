@@ -5,6 +5,7 @@ Run:
 	python setup.py install
 to install the package from the source archive.
 """
+import os
 try:
     from setuptools import setup
 except ImportError, err:
@@ -12,7 +13,7 @@ except ImportError, err:
 
 version = [
     (line.split('=')[1]).strip().strip('"').strip("'")
-    for line in open('__init__.py')
+    for line in open(os.path.join('squaremap','__init__.py'))
     if line.startswith( '__version__' )
 ][0]
 
@@ -45,7 +46,7 @@ in a time-tracking application.""",
 		author_email = "mcfletch@vrplumber.com",
 		license = "BSD",
 		package_dir = {
-			'squaremap':'.',
+			'squaremap':'squaremap',
 		},
 		packages = [
 			'squaremap',
