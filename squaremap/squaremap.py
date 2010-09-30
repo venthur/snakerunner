@@ -39,13 +39,13 @@ class HotMapNavigator(object):
             return children[0][1]
         else:
             return hot_map[index][1] # No children, return the node itself
-        
+
     @staticmethod
     def nextChild(hotmap, index):
         ''' Return the next sibling of the node indicated by index. '''
         nextChildIndex = min(index + 1, len(hotmap) - 1)
         return hotmap[nextChildIndex][1]
-    
+
     @staticmethod
     def previousChild(hotmap, index):
         ''' Return the previous sibling of the node indicated by index. '''
@@ -56,7 +56,7 @@ class HotMapNavigator(object):
     def firstNode(hot_map):
         ''' Return the very first node in the hot_map. '''
         return hot_map[0][1]
-    
+
     @classmethod
     def lastNode(class_, hot_map):
         ''' Return the very last node (recursively) in the hot map. '''
@@ -65,19 +65,19 @@ class HotMapNavigator(object):
             return class_.lastNode(children)
         else:
             return hot_map[-1][1] # Return the last node
-    
-    
+
+
 class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
 
-    BackgroundColor = wx.Color( 128,128,128 )
+    BackgroundColor = wx.Colour( 128,128,128 )
     max_depth = None
     max_depth_seen = None
-    
-    def __init__( 
-        self,  parent=None, id=-1, pos=wx.DefaultPosition, 
-        size=wx.DefaultSize, 
-        style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE, 
+
+    def __init__(
+        self,  parent=None, id=-1, pos=wx.DefaultPosition,
+        size=wx.DefaultSize,
+        style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE,
         name='SquareMap', model = None,
         adapter = None,
         labels = True, # set to True to draw textual labels within the boxes
@@ -105,7 +105,7 @@ class SquareMap( wx.Panel ):
         self.DEFAULT_PEN = wx.Pen( wx.BLACK, 1, wx.SOLID )
         self.SELECTED_PEN = wx.Pen( wx.WHITE, 2, wx.SOLID )
         self.OnSize(None)
-        
+
     def OnMouse( self, event ):
         """Handle mouse-move event by selecting a given element"""
         node = HotMapNavigator.findNodeAtPosition(self.hot_map, event.GetPosition())
@@ -115,25 +115,25 @@ class SquareMap( wx.Panel ):
         """Release over a given square in the map"""
         node = HotMapNavigator.findNodeAtPosition(self.hot_map, event.GetPosition())
         self.SetSelected( node, event.GetPosition() )
-        
+
     def OnDoubleClick(self, event):
         """Double click on a given square in the map"""
         node = HotMapNavigator.findNodeAtPosition(self.hot_map, event.GetPosition())
         if node:
             wx.PostEvent( self, SquareActivationEvent( node=node, point=event.GetPosition(), map=self ) )
-    
+
     def OnKeyUp(self, event):
         event.Skip()
         if not self.selectedNode or not self.hot_map:
             return
-        
+
         if event.KeyCode == wx.WXK_HOME:
             self.SetSelected(HotMapNavigator.firstNode(self.hot_map))
             return
         elif event.KeyCode == wx.WXK_END:
             self.SetSelected(HotMapNavigator.lastNode(self.hot_map))
             return
-        
+
         parent, children, index = HotMapNavigator.findNode(self.hot_map, self.selectedNode)
         if event.KeyCode == wx.WXK_DOWN:
             self.SetSelected(HotMapNavigator.nextChild(children, index))
@@ -146,15 +146,15 @@ class SquareMap( wx.Panel ):
         elif event.KeyCode == wx.WXK_RETURN:
             wx.PostEvent(self, SquareActivationEvent(node=self.selectedNode,
                                                      map=self))
-            
+
     def GetSelected(self):
         return self.selectedNode
-            
+
     def SetSelected( self, node, point=None, propagate=True ):
         """Set the given node selected in the square-map"""
         if node == self.selectedNode:
             return
-        self.selectedNode = node 
+        self.selectedNode = node
         self.Refresh()
         if node:
             wx.PostEvent( self, SquareSelectionEvent( node=node, point=point, map=self ) )
@@ -163,7 +163,7 @@ class SquareMap( wx.Panel ):
         """Set the currently-highlighted node"""
         if node == self.highlightedNode:
             return
-        self.highlightedNode = node 
+        self.highlightedNode = node
         self.Refresh()
         if node and propagate:
             wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
@@ -174,10 +174,10 @@ class SquareMap( wx.Panel ):
         if adapter is not None:
             self.adapter = adapter
         self.Refresh()
-        
+
     def Refresh(self):
         self.UpdateDrawing()
-    
+
     def OnPaint(self, event):
         dc = wx.BufferedPaintDC(self, self._buffer)
 
@@ -196,12 +196,12 @@ class SquareMap( wx.Panel ):
     def UpdateDrawing(self):
         dc = wx.BufferedDC(wx.ClientDC(self), self._buffer)
         self.Draw(dc)
-        
+
     def Draw(self, dc):
         ''' Draw the tree map on the device context. '''
         self.hot_map = []
         dc.BeginDrawing()
-        brush = wx.Brush( self.BackgroundColor  )
+        brush = wx.Brush( self.BackgroundColour  )
         dc.SetBackground( brush )
         dc.Clear()
         if self.model:
@@ -210,29 +210,29 @@ class SquareMap( wx.Panel ):
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
         dc.EndDrawing()
-        
+
     def FontForLabels(self, dc):
         ''' Return the default GUI font, scaled for printing if necessary. '''
         font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
         scale = dc.GetPPI()[0] / wx.ScreenDC().GetPPI()[0]
         font.SetPointSize(scale*font.GetPointSize())
         return font
-    
+
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
         if node == self.selectedNode:
             color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
         elif node == self.highlightedNode:
-            color = wx.Color( red=0, green=255, blue=0 )
+            color = wx.Colour( red=0, green=255, blue=0 )
         else:
             color = self.adapter.background_color(node, depth)
             if not color:
                 red = (depth * 10)%255
                 green = 255-((depth * 5)%255)
                 blue = (depth * 25)%255
-                color = wx.Color( red, green, blue )
+                color = wx.Colour( red, green, blue )
         return wx.Brush( color  )
-    
+
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
         if node == self.selectedNode:
@@ -249,7 +249,7 @@ class SquareMap( wx.Panel ):
             if not fg_color:
                 fg_color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
         return fg_color
-    
+
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
         log.debug( 'Draw: %s to (%s,%s,%s,%s) depth %s',
@@ -275,7 +275,7 @@ class SquareMap( wx.Panel ):
         y += self.padding
         w -= self.padding*2
         h -= self.padding*2
-        
+
         empty = self.adapter.empty( node )
         icon_drawn = False
         if self.max_depth and depth == self.max_depth:
@@ -289,7 +289,7 @@ class SquareMap( wx.Panel ):
             icon_drawn = True
             y += (h-new_h)
             h = new_h
-            
+
         if w >self.padding*2 and h> self.padding*2:
             children = self.adapter.children( node )
             if children:
@@ -301,21 +301,21 @@ class SquareMap( wx.Panel ):
                     self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         else:
             log.debug( '  not enough space: children skipped' )
-                
+
     def DrawIconAndLabel(self, dc, node, x, y, w, h, depth):
         ''' Draw the icon, if any, and the label, if any, of the node. '''
         dc.SetClippingRegion(x+1, y+1, w-2, h-2) # Don't draw outside the box
         icon = self.adapter.icon(node, node==self.selectedNode)
         if icon and h >= icon.GetHeight() and w >= icon.GetWidth():
             iconWidth = icon.GetWidth() + 2
-            dc.DrawIcon(icon, x+2, y+2) 
+            dc.DrawIcon(icon, x+2, y+2)
         else:
             iconWidth = 0
         if self.labels and h >= dc.GetTextExtent('ABC')[1]:
             dc.SetTextForeground(self.TextForegroundForNode(node, depth))
             dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
         dc.DestroyClippingRegion()
-        
+
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
@@ -332,7 +332,7 @@ class SquareMap( wx.Panel ):
                 else:
                     return # no other node will show up as non-0 either
                 w = w-new_w
-                x += new_w 
+                x += new_w
             else:
                 new_h = int(h*fraction)
                 if new_h:
@@ -340,7 +340,7 @@ class SquareMap( wx.Panel ):
                 else:
                     return # no other node will show up as non-0 either
                 h = h-new_h
-                y += new_h 
+                y += new_h
             if rest and (h > self.padding*2) and (w > self.padding*2):
                 self.LayoutChildren( dc, rest, parent, x,y,w,h, hot_map, depth )
 
@@ -390,8 +390,8 @@ class TestApp(wx.App):
         self.frame = frame = wx.Frame( None,
         )
         frame.CreateStatusBar()
-        
-        model = model = self.get_model( sys.argv[1]) 
+
+        model = model = self.get_model( sys.argv[1])
         self.sq = SquareMap( frame, model=model)
         EVT_SQUARE_HIGHLIGHTED( self.sq, self.OnSquareSelected )
         frame.Show(True)
@@ -416,13 +416,13 @@ class Node( object ):
     def __init__( self, path, size, children ):
         self.path = path
         self.size = size
-        self.children = children 
+        self.children = children
     def __repr__( self ):
         return '%s( %r, %r, %r )'%( self.__class__.__name__, self.path, self.size, self.children )
-        
+
 
 usage = 'squaremap.py somedirectory'
-        
+
 def main():
     """Mainloop for the application"""
     if not sys.argv[1:]:
