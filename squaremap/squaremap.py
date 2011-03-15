@@ -315,34 +315,83 @@ class SquareMap( wx.Panel ):
             dc.SetTextForeground(self.TextForegroundForNode(node, depth))
             dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
         dc.DestroyClippingRegion()
-
+    MORE_SQUARE_STYLE = True
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
         nodes.sort(key = lambda x: (x[0],id(x[1])))
         total = self.adapter.children_sum( children,parent )
         if total:
+            if self.MORE_SQUARE_STYLE and len(nodes) > 5:
+                # new handling to make parents with large numbers of parents a little less 
+                # "sliced" looking (i.e. more square)
+                (head_sum,head),(tail_sum,tail) = split_by_value( total, nodes )
+                if head and tail:
+                    # split into two sub-boxes and render each...
+                    head_coord,tail_coord = split_box( head_sum/float(total), x,y,w,h )
+                    if head_coord:
+                        self.LayoutChildren( 
+                            dc, head, parent, head_coord[0],head_coord[1],head_coord[2],head_coord[3],
+                            hot_map, depth
+                        )
+                    if tail_coord and coord_bigger_than_padding( tail_coord, self.padding ):
+                        self.LayoutChildren( 
+                            dc, tail, parent, tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3],
+                            hot_map, depth
+                        )
+                    return 
+                        
             (firstSize,firstNode) = nodes[-1]
-            rest = [node for (size,node) in nodes[:-1]]
+            tail = [node for (size,node) in nodes[:-1]]
             fraction = firstSize/float(total)
-            if w >= h:
-                new_w = int(w*fraction)
-                if new_w:
-                    self.DrawBox( dc, firstNode, x,y, new_w, h, hot_map, depth+1 )
-                else:
-                    return # no other node will show up as non-0 either
-                w = w-new_w
-                x += new_w
+            head_coord,tail_coord = split_box( firstSize/float(total), x,y,w,h )
+            if head_coord:
+                self.DrawBox( 
+                    dc, firstNode, head_coord[0],head_coord[1],head_coord[2],head_coord[3], 
+                    hot_map, depth+1 
+                )
             else:
-                new_h = int(h*fraction)
-                if new_h:
-                    self.DrawBox( dc, firstNode, x,y, w, new_h, hot_map, depth + 1 )
-                else:
-                    return # no other node will show up as non-0 either
-                h = h-new_h
-                y += new_h
-            if rest and (h > self.padding*2) and (w > self.padding*2):
-                self.LayoutChildren( dc, rest, parent, x,y,w,h, hot_map, depth )
+                return # no other node will show up as non-0 either
+                
+            if tail and tail_coord and coord_bigger_than_padding( tail_coord, self.padding ):
+                self.LayoutChildren( 
+                    dc, tail, parent, 
+                    tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3], 
+                    hot_map, depth 
+                )
+def coord_bigger_than_padding( tail_coord, padding ):
+    return (
+        tail_coord and 
+        tail_coord[2] > padding * 2 and 
+        tail_coord[3] > padding * 2
+    )
+def split_box( fraction, x,y, w,h ):
+    """Return set of two boxes where first is the fraction given"""
+    if w >= h:
+        new_w = int(w*fraction)
+        if new_w:
+            return (x,y,new_w,h),(x+new_w,y,w-new_w,h)
+        else:
+            return None,None
+    else:
+        new_h = int(h*fraction)
+        if new_h:
+            return (x,y,w,new_h),(x,y+new_h,w,h-new_h)
+        else:
+            return None,None
+    
+def split_by_value( total, nodes, headdivisor=2.0 ):
+    """Produce, (sum,head),(sum,tail) for nodes to attempt binary partition"""
+    head_sum,tail_sum = 0,0
+    head,tail = [],[]
+    for node in nodes[::-1]:
+        if head_sum < total/headdivisor:
+            head_sum += node[0]
+            head.append( node[1] )
+        else:
+            tail_sum += node[0]
+            tail.append( node[1] )
+    return (head_sum,head),(tail_sum,tail)
 
 
 class DefaultAdapter( object ):
