@@ -319,7 +319,7 @@ class SquareMap( wx.Panel ):
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
-        nodes.sort()
+        nodes.sort(key = lambda x: (x[0],id(x[1])))
         total = self.adapter.children_sum( children,parent )
         if total:
             (firstSize,firstNode) = nodes[-1]
