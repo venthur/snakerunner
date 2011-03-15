@@ -83,12 +83,14 @@ class SquareMap( wx.Panel ):
         labels = True, # set to True to draw textual labels within the boxes
         highlight = True, # set to False to turn of highlighting
         padding = 2, # amount to reduce the children's box from the parent's box
+        margin = 0, # amount to reduce each child's drawn box from their allocated size
     ):
         super( SquareMap, self ).__init__(
             parent, id, pos, size, style, name
         )
         self.model = model
         self.padding = padding
+        self.margin = margin
         self.labels = labels
         self.highlight = highlight
         self.selectedNode = None
@@ -260,14 +262,16 @@ class SquareMap( wx.Panel ):
         self.max_depth_seen = max( (self.max_depth_seen,depth))
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
+        # drawing offset by margin within the square...
+        dx,dy,dw,dh = x+self.margin,y+self.margin,w-(self.margin*2),h-(self.margin*2)
         if sys.platform == 'darwin':
             # Macs don't like drawing small rounded rects...
             if w < self.padding*2 or h < self.padding*2:
-                dc.DrawRectangle( x,y,w,h)
+                dc.DrawRectangle( dx,dy,dw,dh )
             else:
-                dc.DrawRoundedRectangle( x,y,w,h, self.padding )
+                dc.DrawRoundedRectangle( dx,dy,dw,dh, self.padding )
         else:
-            dc.DrawRoundedRectangle( x,y,w,h, self.padding*3 )
+            dc.DrawRoundedRectangle( dx,dy,dw,dh, self.padding*3 )
 #        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         children_hot_map = []
         hot_map.append( (wx.Rect( int(x),int(y),int(w),int(h)), node, children_hot_map ) )
@@ -334,7 +338,7 @@ class SquareMap( wx.Panel ):
                             dc, head, parent, head_coord[0],head_coord[1],head_coord[2],head_coord[3],
                             hot_map, depth
                         )
-                    if tail_coord and coord_bigger_than_padding( tail_coord, self.padding ):
+                    if tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
                         self.LayoutChildren( 
                             dc, tail, parent, tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3],
                             hot_map, depth
@@ -353,7 +357,7 @@ class SquareMap( wx.Panel ):
             else:
                 return # no other node will show up as non-0 either
                 
-            if tail and tail_coord and coord_bigger_than_padding( tail_coord, self.padding ):
+            if tail and tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
                 self.LayoutChildren( 
                     dc, tail, parent, 
                     tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3], 
