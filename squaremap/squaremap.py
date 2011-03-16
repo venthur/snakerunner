@@ -84,12 +84,14 @@ class SquareMap( wx.Panel ):
         highlight = True, # set to False to turn of highlighting
         padding = 2, # amount to reduce the children's box from the parent's box
         margin = 0, # amount to reduce each child's drawn box from their allocated size
+        square_style = False,
     ):
         super( SquareMap, self ).__init__(
             parent, id, pos, size, style, name
         )
         self.model = model
         self.padding = padding
+        self.square_style = square_style
         self.margin = margin
         self.labels = labels
         self.highlight = highlight
@@ -319,14 +321,13 @@ class SquareMap( wx.Panel ):
             dc.SetTextForeground(self.TextForegroundForNode(node, depth))
             dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
         dc.DestroyClippingRegion()
-    MORE_SQUARE_STYLE = True
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
         nodes.sort(key = lambda x: (x[0],id(x[1])))
         total = self.adapter.children_sum( children,parent )
         if total:
-            if self.MORE_SQUARE_STYLE and len(nodes) > 5:
+            if self.square_style and len(nodes) > 5:
                 # new handling to make parents with large numbers of parents a little less 
                 # "sliced" looking (i.e. more square)
                 (head_sum,head),(tail_sum,tail) = split_by_value( total, nodes )
