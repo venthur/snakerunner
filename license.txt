@@ -1,6 +1,6 @@
 License Statement:
 
-	© 1998-2006, Copyright by The Contributors (Listed Below); 
+	© 1998-2011, Copyright by The Contributors (Listed Below); 
 	All Rights Reserved.
 
 	Permission to use, copy, modify, and distribute this software 
