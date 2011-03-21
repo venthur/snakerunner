@@ -138,18 +138,22 @@ class SquareMap( wx.Panel ):
             self.SetSelected(HotMapNavigator.lastNode(self.hot_map))
             return
 
-        parent, children, index = HotMapNavigator.findNode(self.hot_map, self.selectedNode)
-        if event.KeyCode == wx.WXK_DOWN:
-            self.SetSelected(HotMapNavigator.nextChild(children, index))
-        elif event.KeyCode == wx.WXK_UP:
-            self.SetSelected(HotMapNavigator.previousChild(children, index))
-        elif event.KeyCode == wx.WXK_RIGHT:
-            self.SetSelected(HotMapNavigator.firstChild(children, index))
-        elif event.KeyCode == wx.WXK_LEFT and parent:
-            self.SetSelected(parent)
-        elif event.KeyCode == wx.WXK_RETURN:
-            wx.PostEvent(self, SquareActivationEvent(node=self.selectedNode,
-                                                     map=self))
+        try:
+            parent, children, index = HotMapNavigator.findNode(self.hot_map, self.selectedNode)
+        except TypeError, err:
+            log.info( 'Unable to find hot-map record for node %s', self.selectedNode )
+        else:
+            if event.KeyCode == wx.WXK_DOWN:
+                self.SetSelected(HotMapNavigator.nextChild(children, index))
+            elif event.KeyCode == wx.WXK_UP:
+                self.SetSelected(HotMapNavigator.previousChild(children, index))
+            elif event.KeyCode == wx.WXK_RIGHT:
+                self.SetSelected(HotMapNavigator.firstChild(children, index))
+            elif event.KeyCode == wx.WXK_LEFT and parent:
+                self.SetSelected(parent)
+            elif event.KeyCode == wx.WXK_RETURN:
+                wx.PostEvent(self, SquareActivationEvent(node=self.selectedNode,
+                                                         map=self))
 
     def GetSelected(self):
         return self.selectedNode
