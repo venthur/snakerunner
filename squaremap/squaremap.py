@@ -210,7 +210,9 @@ class SquareMap( wx.Panel ):
         dc.Clear()
         if self.model:
             self.max_depth_seen = 0
-            dc.SetFont(self.FontForLabels(dc))
+            font = self.FontForLabels(dc)
+            dc.SetFont(font)
+            self._em_size_ = dc.GetFullTextExtent( 'm', font )[0]
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
         dc.EndDrawing()
@@ -261,6 +263,8 @@ class SquareMap( wx.Panel ):
         )
         if self.max_depth and depth > self.max_depth:
             return
+#        if w < (self.padding+self.margin) or h < (self.padding+self.margin):
+#            return 
         self.max_depth_seen = max( (self.max_depth_seen,depth))
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
@@ -281,6 +285,7 @@ class SquareMap( wx.Panel ):
         y += self.padding
         w -= self.padding*2
         h -= self.padding*2
+        
 
         empty = self.adapter.empty( node )
         icon_drawn = False
@@ -310,17 +315,21 @@ class SquareMap( wx.Panel ):
 
     def DrawIconAndLabel(self, dc, node, x, y, w, h, depth):
         ''' Draw the icon, if any, and the label, if any, of the node. '''
+        if w-2 < self._em_size_//2 or h-2 < self._em_size_ //2:
+            return
         dc.SetClippingRegion(x+1, y+1, w-2, h-2) # Don't draw outside the box
-        icon = self.adapter.icon(node, node==self.selectedNode)
-        if icon and h >= icon.GetHeight() and w >= icon.GetWidth():
-            iconWidth = icon.GetWidth() + 2
-            dc.DrawIcon(icon, x+2, y+2)
-        else:
-            iconWidth = 0
-        if self.labels and h >= dc.GetTextExtent('ABC')[1]:
-            dc.SetTextForeground(self.TextForegroundForNode(node, depth))
-            dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
-        dc.DestroyClippingRegion()
+        try:
+            icon = self.adapter.icon(node, node==self.selectedNode)
+            if icon and h >= icon.GetHeight() and w >= icon.GetWidth():
+                iconWidth = icon.GetWidth() + 2
+                dc.DrawIcon(icon, x+2, y+2)
+            else:
+                iconWidth = 0
+            if self.labels and h >= dc.GetTextExtent('ABC')[1]:
+                dc.SetTextForeground(self.TextForegroundForNode(node, depth))
+                dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
+        finally:
+            dc.DestroyClippingRegion()
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
         """Layout the set of children in the given rectangle"""
         nodes = [ (self.adapter.value(node,parent),node) for node in children ]
