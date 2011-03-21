@@ -263,8 +263,6 @@ class SquareMap( wx.Panel ):
         )
         if self.max_depth and depth > self.max_depth:
             return
-#        if w < (self.padding+self.margin) or h < (self.padding+self.margin):
-#            return 
         self.max_depth_seen = max( (self.max_depth_seen,depth))
         dc.SetBrush( self.BrushForNode( node, depth ) )
         dc.SetPen( self.PenForNode( node, depth ) )
