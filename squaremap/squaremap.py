@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import wx, sys, os, logging
+import wx, sys, os, logging, operator
 import wx.lib.newevent
 log = logging.getLogger( 'squaremap' )
 #log.setLevel( logging.DEBUG )
@@ -332,11 +332,19 @@ class SquareMap( wx.Panel ):
                 dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
         finally:
             dc.DestroyClippingRegion()
-    def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0 ):
-        """Layout the set of children in the given rectangle"""
-        nodes = [ (self.adapter.value(node,parent),node) for node in children ]
-        nodes.sort(key = lambda x: (x[0],id(x[1])))
-        total = self.adapter.children_sum( children,parent )
+    def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0, node_sum=None ):
+        """Layout the set of children in the given rectangle
+        
+        node_sum -- if provided, we are a recursive call that already has sizes and sorting,
+            so skip those operations
+        """
+        if node_sum is None:
+            nodes = [ (self.adapter.value(node,parent),node) for node in children ]
+            nodes.sort(key=operator.itemgetter(0))
+            total = self.adapter.children_sum( children,parent )
+        else:
+            nodes = children
+            total = node_sum
         if total:
             if self.square_style and len(nodes) > 5:
                 # new handling to make parents with large numbers of parents a little less 
@@ -348,17 +356,18 @@ class SquareMap( wx.Panel ):
                     if head_coord:
                         self.LayoutChildren( 
                             dc, head, parent, head_coord[0],head_coord[1],head_coord[2],head_coord[3],
-                            hot_map, depth
+                            hot_map, depth,
+                            node_sum = head_sum,
                         )
                     if tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
                         self.LayoutChildren( 
                             dc, tail, parent, tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3],
-                            hot_map, depth
+                            hot_map, depth,
+                            node_sum = tail_sum,
                         )
                     return 
                         
             (firstSize,firstNode) = nodes[-1]
-            tail = [node for (size,node) in nodes[:-1]]
             fraction = firstSize/float(total)
             head_coord,tail_coord = split_box( firstSize/float(total), x,y,w,h )
             if head_coord:
@@ -369,11 +378,12 @@ class SquareMap( wx.Panel ):
             else:
                 return # no other node will show up as non-0 either
                 
-            if tail and tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
+            if len(nodes) > 1 and tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
                 self.LayoutChildren( 
-                    dc, tail, parent, 
+                    dc, nodes[:-1], parent, 
                     tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3], 
-                    hot_map, depth 
+                    hot_map, depth,
+                    node_sum = total - firstSize,
                 )
 def coord_bigger_than_padding( tail_coord, padding ):
     return (
@@ -403,10 +413,10 @@ def split_by_value( total, nodes, headdivisor=2.0 ):
     for node in nodes[::-1]:
         if head_sum < total/headdivisor:
             head_sum += node[0]
-            head.append( node[1] )
+            head.append( node )
         else:
             tail_sum += node[0]
-            tail.append( node[1] )
+            tail.append( node )
     return (head_sum,head),(tail_sum,tail)
 
 
