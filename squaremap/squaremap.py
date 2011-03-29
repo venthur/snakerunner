@@ -409,15 +409,14 @@ def split_box( fraction, x,y, w,h ):
 def split_by_value( total, nodes, headdivisor=2.0 ):
     """Produce, (sum,head),(sum,tail) for nodes to attempt binary partition"""
     head_sum,tail_sum = 0,0
-    head,tail = [],[]
+    divider = 0
     for node in nodes[::-1]:
         if head_sum < total/headdivisor:
             head_sum += node[0]
-            head.append( node )
+            divider -= 1
         else:
-            tail_sum += node[0]
-            tail.append( node )
-    return (head_sum,head),(tail_sum,tail)
+            break
+    return (head_sum,nodes[divider:]),(total-head_sum,nodes[:divider])
 
 
 class DefaultAdapter( object ):
