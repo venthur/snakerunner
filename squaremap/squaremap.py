@@ -80,12 +80,24 @@ class SquareMap( wx.Panel ):
         style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE,
         name='SquareMap', model = None,
         adapter = None,
-        labels = True, # set to True to draw textual labels within the boxes
-        highlight = True, # set to False to turn of highlighting
-        padding = 2, # amount to reduce the children's box from the parent's box
-        margin = 0, # amount to reduce each child's drawn box from their allocated size
+        labels = True, 
+        highlight = True,
+        padding = 2,
+        margin = 0,
         square_style = False,
     ):
+        """Initialise the SquareMap
+        
+        adapter -- a DefaultAdapter or same-interface instance providing SquareMap data api
+        labels -- set to True (default) to draw textual labels within the boxes
+        highlight -- set to True (default) to highlight nodes on mouse-over 
+        padding -- spacing within each square and its children (within the square's border)
+        margin -- spacing around each square (on all sides)
+        square_style -- use a more-recursive, less-linear, more "square" layout style which 
+            works better on objects with large numbers of children, such as Meliae memory 
+            dumps, works fine on profile views as well, but the layout is less obvious wrt 
+            what node is "next" "previous" etc.
+        """
         super( SquareMap, self ).__init__(
             parent, id, pos, size, style, name
         )
@@ -163,7 +175,7 @@ class SquareMap( wx.Panel ):
         if node == self.selectedNode:
             return
         self.selectedNode = node
-        self.Refresh()
+        self.UpdateDrawing()
         if node:
             wx.PostEvent( self, SquareSelectionEvent( node=node, point=point, map=self ) )
 
@@ -172,7 +184,8 @@ class SquareMap( wx.Panel ):
         if node == self.highlightedNode:
             return
         self.highlightedNode = node
-        self.Refresh()
+        # TODO: restrict refresh to the squares for previous node and new node...
+        self.UpdateDrawing()
         if node and propagate:
             wx.PostEvent( self, SquareHighlightEvent( node=node, point=point, map=self ) )
 
@@ -181,9 +194,6 @@ class SquareMap( wx.Panel ):
         self.model = model
         if adapter is not None:
             self.adapter = adapter
-        self.Refresh()
-
-    def Refresh(self):
         self.UpdateDrawing()
 
     def OnPaint(self, event):
