@@ -23,13 +23,24 @@ class HotMapNavigator(object):
                 return result
         return None
 
-    @classmethod
-    def findNodeAtPosition(class_, hot_map, position, parent=None):
-        ''' Retrieve the node at the given position. '''
-        for rect, node, children in hot_map:
-            if rect.Contains(position):
-                return class_.findNodeAtPosition(children, position, node)
-        return parent
+    if hasattr( wx.Rect, 'Contains' ):
+        # wx 2.8+
+        @classmethod
+        def findNodeAtPosition(class_, hot_map, position, parent=None):
+            ''' Retrieve the node at the given position. '''
+            for rect, node, children in hot_map:
+                if rect.Contains(position):
+                    return class_.findNodeAtPosition(children, position, node)
+            return parent
+    else:
+        # wx 2.6
+        @classmethod
+        def findNodeAtPosition(class_, hot_map, position, parent=None):
+            ''' Retrieve the node at the given position. '''
+            for rect, node, children in hot_map:
+                if rect.Inside(position):
+                    return class_.findNodeAtPosition(children, position, node)
+            return parent
 
     @staticmethod
     def firstChild(hot_map, index):
