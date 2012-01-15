@@ -120,6 +120,7 @@ class SquareMap( wx.Panel ):
         self.highlight = highlight
         self.selectedNode = None
         self.highlightedNode = None
+        self._buffer = wx.EmptyBitmap(20, 20) # Have a default buffer ready
         self.Bind( wx.EVT_PAINT, self.OnPaint)
         self.Bind( wx.EVT_SIZE, self.OnSize )
         if highlight:
