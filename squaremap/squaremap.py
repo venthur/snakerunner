@@ -164,7 +164,7 @@ class SquareMap( wx.Panel ):
 
         try:
             parent, children, index = HotMapNavigator.findNode(self.hot_map, self.selectedNode)
-        except TypeError, err:
+        except TypeError:
             log.info( 'Unable to find hot-map record for node %s', self.selectedNode )
         else:
             if event.KeyCode == wx.WXK_DOWN:
@@ -524,7 +524,7 @@ usage = 'squaremap.py somedirectory'
 def main():
     """Mainloop for the application"""
     if not sys.argv[1:]:
-        print usage
+        print(usage)
     else:
         app = TestApp(0)
         app.MainLoop()
