@@ -81,7 +81,7 @@ class HotMapNavigator(object):
 class SquareMap( wx.Panel ):
     """Construct a nested-box trees structure view"""
 
-    BackgroundColor = wx.Colour( 128,128,128 )
+    BackgroundColour = wx.Colour( 128,128,128 )
     max_depth = None
     max_depth_seen = None
 
@@ -255,17 +255,17 @@ class SquareMap( wx.Panel ):
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
         if node == self.selectedNode:
-            color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+            colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
         elif node == self.highlightedNode:
-            color = wx.Colour( red=0, green=255, blue=0 )
+            colour = wx.Colour( red=0, green=255, blue=0 )
         else:
-            color = self.adapter.background_color(node, depth)
-            if not color:
+            colour = self.adapter.background_color(node, depth)
+            if not colour:
                 red = (depth * 10)%255
                 green = 255-((depth * 5)%255)
                 blue = (depth * 25)%255
-                color = wx.Colour( red, green, blue )
-        return wx.Brush( color  )
+                colour = wx.Colour( red, green, blue )
+        return wx.Brush( colour  )
 
     def PenForNode( self, node, depth=0 ):
         """Determine the pen to use to display the given node"""
@@ -274,15 +274,15 @@ class SquareMap( wx.Panel ):
         return self.DEFAULT_PEN
 
     def TextForegroundForNode(self, node, depth=0):
-        """Determine the text foreground color to use to display the label of
+        """Determine the text foreground colour to use to display the label of
            the given node"""
         if node == self.selectedNode:
-            fg_color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
+            fg_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
         else:
-            fg_color = self.adapter.foreground_color(node, depth)
-            if not fg_color:
-                fg_color = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
-        return fg_color
+            fg_colour = self.adapter.foreground_color(node, depth)
+            if not fg_colour:
+                fg_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        return fg_colour
 
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
         """Draw a model-node's box and all children nodes"""
