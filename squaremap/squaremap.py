@@ -397,7 +397,7 @@ class SquareMap( wx.Panel ):
             if head_coord:
                 self.DrawBox( 
                     dc, firstNode, head_coord[0],head_coord[1],head_coord[2],head_coord[3], 
-                    hot_map, depth+1 
+                    hot_map, depth
                 )
             else:
                 return # no other node will show up as non-0 either
