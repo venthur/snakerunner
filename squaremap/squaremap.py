@@ -214,9 +214,11 @@ class SquareMap( wx.Panel ):
     def OnSize(self, event):
         # The buffer is initialized in here, so that the buffer is always
         # the same size as the Window.
+        if event is None:
+            return 0,0
         width, height = self.GetClientSizeTuple()
         if width <= 0 or height <=0:
-            return
+            return 0,0
         # Make new off-screen bitmap: this bitmap will always have the
         # current drawing in it, so it can be used to save the image to
         # a file, or whatever.
