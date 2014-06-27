@@ -1,7 +1,7 @@
 THIS SOFTWARE IS NOT FAULT TOLERANT AND SHOULD NOT BE USED IN ANY
 SITUATION ENDANGERING HUMAN LIFE OR PROPERTY.
 
-© 1998-2011, Copyright by The Contributors (Listed Below); 
+© 1998-2014, Copyright by The Contributors (Listed Below); 
 All Rights Reserved.
 
 License Statement:
