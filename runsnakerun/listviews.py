@@ -133,7 +133,7 @@ class DataView(wx.ListCtrl):
         """We have double-clicked for hit enter on a node refocus squaremap to this node"""
         try:
             node = self.sorted[event.GetIndex()]
-        except IndexError, err:
+        except IndexError as err:
             log.warn(_('Invalid index in node activated: %(index)s'),
                      index=event.GetIndex())
         else:
@@ -147,7 +147,7 @@ class DataView(wx.ListCtrl):
         """We have selected a node with the list control, tell the world"""
         try:
             node = self.sorted[event.GetIndex()]
-        except IndexError, err:
+        except IndexError as err:
             log.warn(_('Invalid index in node selected: %(index)s'),
                      index=event.GetIndex())
         else:
@@ -164,7 +164,7 @@ class DataView(wx.ListCtrl):
         if item > -1:
             try:
                 node = self.sorted[item]
-            except IndexError, err:
+            except IndexError as err:
                 log.warn(_('Invalid index in mouse move: %(index)s'),
                          index=event.GetIndex())
             else:
@@ -272,28 +272,28 @@ class DataView(wx.ListCtrl):
         try:
             column = self.columns[col]
             value = column.get(self.sorted[item])
-        except IndexError, err:
+        except IndexError as err:
             return None
         else:
             if value is None:
-                return u''
+                return ''
             if column.percentPossible and self.percentageView and self.total:
                 value = value / float(self.total) * 100.00
             if column.format:
                 try:
                     return column.format % (value,)
-                except Exception, err:
+                except Exception as err:
                     log.warn('Column %s could not format %r value: %r',
                              column.name, type(value), value
                              )
                     value = column.get(self.sorted[item])
-                    if isinstance(value, (unicode, str)):
+                    if isinstance(value, str):
                         return value
-                    return unicode(value)
+                    return str(value)
             else:
-                if isinstance(value, (unicode, str)):
+                if isinstance(value, str):
                     return value
-                return unicode(value)
+                return str(value)
 
     def OnGetItemToolTip(self, item, col):
         return self.OnGetItemText(item, col)  # XXX: do something nicer

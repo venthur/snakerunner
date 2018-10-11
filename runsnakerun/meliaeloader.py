@@ -22,7 +22,7 @@ try:
 except ImportError, err:
     try:
         from json import loads as json_loads
-    except ImportError, err:
+    except ImportError as err:
         from simplejson import loads as json_loads
 import sys
 
@@ -131,7 +131,7 @@ def children(record, index, key='refs', stop_types=STOP_TYPES):
     for ref in record.get(key, []):
         try:
             record = index[ref]
-        except KeyError, err:
+        except KeyError as err:
             #print 'No record for %s address %s in %s'%(key, ref, record['address'] )
             # happens when an unreachable references a reachable that has been compressed out...
             pass
@@ -198,7 +198,7 @@ def rewrite_refs(targets, old, new, index, key='refs', single_ref=False):
         if not isinstance(parent, dict):
             try:
                 parent = index[parent]
-            except KeyError, err:
+            except KeyError as err:
                 continue
         rewrite_references(parent[key], old, new, single_ref=single_ref)
 
@@ -282,11 +282,11 @@ def group_children(index, shared, min_kids=10, stop_types=STOP_TYPES, delete_chi
             for address in kid_addresses:
                 try:
                     del index[address]
-                except KeyError, err:
+                except KeyError as err:
                     pass  # already compressed out
                 try:
                     del shared[address]
-                except KeyError, err:
+                except KeyError as err:
                     pass  # already compressed out
             index[typ_address]['refs'] = []
         else:
@@ -374,7 +374,7 @@ def find_reachable(modules, index, shared, stop_types=STOP_TYPES):
 def deparent_unreachable(reachable, shared):
     """Eliminate all parent-links from unreachable objects from reachable objects
     """
-    for id, shares in shared.iteritems():
+    for id, shares in shared.items():
         if id in reachable:  # child is reachable
             filtered = [
                 x
@@ -406,10 +406,10 @@ def index_size(index):
 
 
 def iterindex(index):
-    for (k, v) in index.iteritems():
+    for (k, v) in index.items():
         if (
             isinstance(v, dict) and
-            isinstance(k, (int, long))
+            isinstance(k, int)
         ):
             yield v
 
@@ -423,7 +423,7 @@ def bind_parents(index, shared):
 def check_parents(index, reachable):
     for item in iterindex(index):
         if item['type'] == '<many>':
-            print 'parents', item['parents']
+            print('parents', item['parents'])
 
 
 def load(filename, include_interpreter=False):
