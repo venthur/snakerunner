@@ -91,22 +91,22 @@ class SquareMap( wx.Panel ):
         style=wx.TAB_TRAVERSAL|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE,
         name='SquareMap', model = None,
         adapter = None,
-        labels = True, 
+        labels = True,
         highlight = True,
         padding = 2,
         margin = 0,
         square_style = False,
     ):
         """Initialise the SquareMap
-        
+
         adapter -- a DefaultAdapter or same-interface instance providing SquareMap data api
         labels -- set to True (default) to draw textual labels within the boxes
-        highlight -- set to True (default) to highlight nodes on mouse-over 
+        highlight -- set to True (default) to highlight nodes on mouse-over
         padding -- spacing within each square and its children (within the square's border)
         margin -- spacing around each square (on all sides)
-        square_style -- use a more-recursive, less-linear, more "square" layout style which 
-            works better on objects with large numbers of children, such as Meliae memory 
-            dumps, works fine on profile views as well, but the layout is less obvious wrt 
+        square_style -- use a more-recursive, less-linear, more "square" layout style which
+            works better on objects with large numbers of children, such as Meliae memory
+            dumps, works fine on profile views as well, but the layout is less obvious wrt
             what node is "next" "previous" etc.
         """
         super( SquareMap, self ).__init__(
@@ -120,7 +120,7 @@ class SquareMap( wx.Panel ):
         self.highlight = highlight
         self.selectedNode = None
         self.highlightedNode = None
-        self._buffer = wx.EmptyBitmap(20, 20) # Have a default buffer ready
+        self._buffer = wx.Bitmap(20, 20) # Have a default buffer ready
         self.Bind( wx.EVT_PAINT, self.OnPaint)
         self.Bind( wx.EVT_SIZE, self.OnSize )
         if highlight:
@@ -216,7 +216,7 @@ class SquareMap( wx.Panel ):
         # the same size as the Window.
         if event is None:
             return 0,0
-        width, height = self.GetClientSizeTuple()
+        width, height = self.GetClientSize()
         if width <= 0 or height <=0:
             return 0,0
         # Make new off-screen bitmap: this bitmap will always have the
@@ -224,7 +224,7 @@ class SquareMap( wx.Panel ):
         # a file, or whatever.
         if width and height:
             # Macs can generate events with 0-size values
-            self._buffer = wx.EmptyBitmap(width, height)
+            self._buffer = wx.Bitmap(width, height)
             self.UpdateDrawing()
 
     def UpdateDrawing(self):
@@ -234,7 +234,6 @@ class SquareMap( wx.Panel ):
     def Draw(self, dc):
         ''' Draw the tree map on the device context. '''
         self.hot_map = []
-        dc.BeginDrawing()
         brush = wx.Brush( self.BackgroundColour  )
         dc.SetBackground( brush )
         dc.Clear()
@@ -245,11 +244,10 @@ class SquareMap( wx.Panel ):
             self._em_size_ = dc.GetFullTextExtent( 'm', font )[0]
             w, h = dc.GetSize()
             self.DrawBox( dc, self.model, 0,0,w,h, hot_map = self.hot_map )
-        dc.EndDrawing()
 
     def FontForLabels(self, dc):
         ''' Return the default GUI font, scaled for printing if necessary. '''
-        font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         scale = dc.GetPPI()[0] / wx.ScreenDC().GetPPI()[0]
         font.SetPointSize(scale*font.GetPointSize())
         return font
@@ -257,7 +255,7 @@ class SquareMap( wx.Panel ):
     def BrushForNode( self, node, depth=0 ):
         """Create brush to use to display the given node"""
         if node == self.selectedNode:
-            colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+            colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
         elif node == self.highlightedNode:
             colour = wx.Colour( red=0, green=255, blue=0 )
         else:
@@ -279,11 +277,11 @@ class SquareMap( wx.Panel ):
         """Determine the text foreground colour to use to display the label of
            the given node"""
         if node == self.selectedNode:
-            fg_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
+            fg_colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
         else:
             fg_colour = self.adapter.foreground_color(node, depth)
             if not fg_colour:
-                fg_colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+                fg_colour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
         return fg_colour
 
     def DrawBox( self, dc, node, x,y,w,h, hot_map, depth=0 ):
@@ -313,7 +311,7 @@ class SquareMap( wx.Panel ):
         y += self.padding
         w -= self.padding*2
         h -= self.padding*2
-        
+
 
         empty = self.adapter.empty( node )
         icon_drawn = False
@@ -360,7 +358,7 @@ class SquareMap( wx.Panel ):
             dc.DestroyClippingRegion()
     def LayoutChildren( self, dc, children, parent, x,y,w,h, hot_map, depth=0, node_sum=None ):
         """Layout the set of children in the given rectangle
-        
+
         node_sum -- if provided, we are a recursive call that already has sizes and sorting,
             so skip those operations
         """
@@ -373,48 +371,48 @@ class SquareMap( wx.Panel ):
             total = node_sum
         if total:
             if self.square_style and len(nodes) > 5:
-                # new handling to make parents with large numbers of parents a little less 
+                # new handling to make parents with large numbers of parents a little less
                 # "sliced" looking (i.e. more square)
                 (head_sum,head),(tail_sum,tail) = split_by_value( total, nodes )
                 if head and tail:
                     # split into two sub-boxes and render each...
                     head_coord,tail_coord = split_box( head_sum/float(total), x,y,w,h )
                     if head_coord:
-                        self.LayoutChildren( 
+                        self.LayoutChildren(
                             dc, head, parent, head_coord[0],head_coord[1],head_coord[2],head_coord[3],
                             hot_map, depth,
                             node_sum = head_sum,
                         )
                     if tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
-                        self.LayoutChildren( 
+                        self.LayoutChildren(
                             dc, tail, parent, tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3],
                             hot_map, depth,
                             node_sum = tail_sum,
                         )
-                    return 
-                        
+                    return
+
             (firstSize,firstNode) = nodes[-1]
             fraction = firstSize/float(total)
             head_coord,tail_coord = split_box( firstSize/float(total), x,y,w,h )
             if head_coord:
-                self.DrawBox( 
-                    dc, firstNode, head_coord[0],head_coord[1],head_coord[2],head_coord[3], 
+                self.DrawBox(
+                    dc, firstNode, head_coord[0],head_coord[1],head_coord[2],head_coord[3],
                     hot_map, depth
                 )
             else:
                 return # no other node will show up as non-0 either
-                
+
             if len(nodes) > 1 and tail_coord and coord_bigger_than_padding( tail_coord, self.padding+self.margin ):
-                self.LayoutChildren( 
-                    dc, nodes[:-1], parent, 
-                    tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3], 
+                self.LayoutChildren(
+                    dc, nodes[:-1], parent,
+                    tail_coord[0],tail_coord[1],tail_coord[2],tail_coord[3],
                     hot_map, depth,
                     node_sum = total - firstSize,
                 )
 def coord_bigger_than_padding( tail_coord, padding ):
     return (
-        tail_coord and 
-        tail_coord[2] > padding * 2 and 
+        tail_coord and
+        tail_coord[2] > padding * 2 and
         tail_coord[3] > padding * 2
     )
 def split_box( fraction, x,y, w,h ):
@@ -431,7 +429,7 @@ def split_box( fraction, x,y, w,h ):
             return (x,y,w,new_h),(x,y+new_h,w,h-new_h)
         else:
             return None,None
-    
+
 def split_by_value( total, nodes, headdivisor=2.0 ):
     """Produce, (sum,head),(sum,tail) for nodes to attempt binary partition"""
     head_sum,tail_sum = 0,0
