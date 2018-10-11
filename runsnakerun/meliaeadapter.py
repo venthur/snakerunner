@@ -25,7 +25,7 @@ import wx, sys, os, logging, imp
 import wx.lib.newevent
 log = logging.getLogger( __name__ )
 import sys
-from squaremap import squaremap
+from runsnakerun import squaremap
 from runsnakerun import meliaeloader
 
 RANKS = [

@@ -11,7 +11,7 @@ except ImportError, err:
     editor = None
 from gettext import gettext as _
 import pstats
-from squaremap import squaremap
+from runsnakerun import squaremap
 from runsnakerun import pstatsloader,pstatsadapter, meliaeloader, meliaeadapter
 from runsnakerun import listviews
 from runsnakerun import homedirectory

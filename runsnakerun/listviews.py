@@ -1,6 +1,6 @@
 import wx, sys, os, logging, operator, traceback
 from gettext import gettext as _
-from squaremap import squaremap
+from runsnakerun import squaremap
 from wx.lib.agw.ultimatelistctrl import UltimateListCtrl,ULC_REPORT,ULC_VIRTUAL,ULC_VRULES,ULC_SINGLE_SEL
 
 if sys.platform == 'win32':
