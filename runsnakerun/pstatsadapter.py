@@ -7,7 +7,7 @@ class PStatsAdapter(squaremap.DefaultAdapter):
 
     percentageView = False
     total = 0
-    
+
     TREE = pstatsloader.TREE_CALLS
 
     def value(self, node, parent=None):
@@ -71,7 +71,7 @@ class PStatsAdapter(squaremap.DefaultAdapter):
             # TODO: look up C/Cython/whatever source???
             return None
         return os.path.join(node.directory, node.filename)
-        
+
 
 class DirectoryViewAdapter(PStatsAdapter):
     """Provides a directory-view-only adapter for PStats objects"""

@@ -50,7 +50,7 @@ class ColdshotAdapter(BaseColdshotAdapter):
             return parent.child_cumulative_time(node)
         else:
             return node.cumulative
-    
+
     def empty(self, node):
         """Calculate percentage of "empty" time"""
         return node.empty
@@ -59,7 +59,7 @@ class ColdshotAdapter(BaseColdshotAdapter):
 #class ColdshotCallsAdapter( BaseColdshotAdapter ):
 #    def value(self, node, parent=None):
 #        return node.cumulative / parent.cumulative
-#    
+#
 #    def empty(self, node):
 #        """Calculate percentage of "empty" time"""
 #        return node.empty
@@ -68,28 +68,28 @@ class FunctionLineWrapper( object ):
     def __init__( self, function_info, line_info ):
         self.function_info = function_info
         self.line_info = line_info
-    @property 
+    @property
     def children( self ):
         return []
-    @property 
+    @property
     def parents( self ):
         return [ self.function_info ]
-    @property 
+    @property
     def cumulative( self ):
         return self.line_info.time * self.function_info.loader.timer_unit
-    @property 
+    @property
     def empty( self ):
         return 0.0
-    @property 
+    @property
     def local( self ):
         return self.line_info.time * self.function_info.loader.timer_unit
-    @property 
+    @property
     def key( self ):
-        return self.function_info.key 
-    @property 
+        return self.function_info.key
+    @property
     def name( self ):
         return '%s:%s'%( self.line_info.line, self.function_info.filename,  )
-    @property 
+    @property
     def calls( self ):
         return self.line_info.calls
 
@@ -122,28 +122,28 @@ class ModuleAdapter( ColdshotAdapter ):
         return ColdshotAdapter.children( self, node )
     def label(self, node):
         if isinstance( node, FunctionLineWrapper ):
-            return node.name 
+            return node.name
         return ColdshotAdapter.label( self, node )
-    
-        
+
+
 class Loader( loader.Loader ):
     """Coldshot loader subclass with knowledge of squaremap adapters"""
     def functions_rows( self ):
         """Get cProfile-like function metadata rows
-        
+
         returns an ID: function mapping
         """
         return self.info.functions
     def location_rows( self ):
         """Get our location records (finalized)
-        
+
         returns an module-name: Grouping mapping
         """
         self.info.finalize_modules()
         return self.info.modules
-        
+
     ROOTS = ['functions','location' ]# ,'thread','calls']
-    
+
     def get_root( self, key ):
         """Retrieve the given root by type-key"""
         return self.info.roots[key]
@@ -158,4 +158,4 @@ class Loader( loader.Loader ):
             return ModuleAdapter()
         else:
             raise KeyError( """Unknown root type %s"""%( key, ))
-    
+

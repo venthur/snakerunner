@@ -22,16 +22,16 @@ class ColumnDefinition(object):
     percentPossible = False
     targetWidth = None
     getter = None
-    
+
     sortDefault=False
 
     def __init__(self, **named):
         for key, value in named.items():
             setattr(self, key, value)
         if self.getter:
-            self.get = self.getter 
+            self.get = self.getter
         else:
-            attribute = self.attribute 
+            attribute = self.attribute
             def getter( function ):
                 return getattr( function, attribute, None )
             self.get = self.getter = getter
@@ -41,9 +41,9 @@ class DictColumn( ColumnDefinition ):
         for key, value in named.items():
             setattr(self, key, value)
         if self.getter:
-            self.get = self.getter 
+            self.get = self.getter
         else:
-            attribute = self.attribute 
+            attribute = self.attribute
             def getter( function ):
                 return function.get( attribute, None )
             self.get = self.getter = getter
@@ -89,11 +89,14 @@ class DataView(wx.ListCtrl):
 
     def CreateControls(self):
         """Create our sub-controls"""
-        wx.EVT_LIST_COL_CLICK(self, self.GetId(), self.OnReorder)
-        wx.EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.OnNodeSelected)
-        wx.EVT_MOTION(self, self.OnMouseMove)
-        wx.EVT_LIST_ITEM_ACTIVATED(self, self.GetId(), self.OnNodeActivated)
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnReorder, id=self.GetId())
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnNodeSelected,
+                  id=self.GetId())
+        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnNodeActivated,
+                  id=self.GetId())
         self.CreateColumns()
+
     def CreateColumns( self ):
         """Create/recreate our column definitions from current self.columns"""
         self.SetItemCount(0)
@@ -108,9 +111,10 @@ class DataView(wx.ListCtrl):
                 self.SetColumnWidth(i, wx.LIST_AUTOSIZE)
             else:
                 self.SetColumnWidth(i, column.targetWidth)
+
     def SetColumns( self, columns, sortOrder=None ):
         """Set columns to a set of values other than the originals and recreates column controls"""
-        self.columns = columns 
+        self.columns = columns
         self.sortOrder = [(x.defaultOrder,x) for x in self.columns if x.sortDefault]
         self.CreateColumns()
 
@@ -231,8 +235,8 @@ class DataView(wx.ListCtrl):
         else:
             columns = self.sortOrder
         for ascending,column in columns[::-1]:
-            # Python 2.2+ guarantees stable sort, so sort by each column in reverse 
-            # order will order by the assigned columns 
+            # Python 2.2+ guarantees stable sort, so sort by each column in reverse
+            # order will order by the assigned columns
             self.sorted.sort( key=column.get, reverse=(not ascending))
 
     def integrateRecords(self, functions):

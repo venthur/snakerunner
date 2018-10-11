@@ -4,21 +4,21 @@
 Trees:
 
     * has-a
-        * module root 
-        * each held reference contributes a weighted cost to the parent 
+        * module root
+        * each held reference contributes a weighted cost to the parent
         * hierarchy of held objects, so globals, classes, functions, and their children
         * held modules do not contribute to cost
-        
-        * module 
+
+        * module
             * instance-tree
 
 Planned:
 
     * is-a
-        * class/type root 
-            * instances contribute to their type 
-                * summary-by-type 
-            
+        * class/type root
+            * instances contribute to their type
+                * summary-by-type
+
 
 """
 import wx, sys, os, logging, imp
@@ -50,7 +50,7 @@ class MeliaeAdapter( squaremap.DefaultAdapter ):
         return node.get('children',[])
     def value( self, node, parent=None ):
         """Return value used to compare size of this node"""
-        # this is the *weighted* size/contribution of the node 
+        # this is the *weighted* size/contribution of the node
         try:
             return node['contribution']
         except KeyError, err:
@@ -88,7 +88,7 @@ class MeliaeAdapter( squaremap.DefaultAdapter ):
         if 'index' in node:
             index = node['index']()
             parents = list(meliaeloader.children( node, index, 'parents' ))
-            return parents 
+            return parents
         return []
     def best_parent( self, node, tree_type=None ):
         """Choose the best parent for a given node"""
@@ -99,7 +99,7 @@ class MeliaeAdapter( squaremap.DefaultAdapter ):
             if module:
                 for mod in parents:
                     if mod['type'] == 'module' and mod['name'] == module:
-                        selected_parent = mod 
+                        selected_parent = mod
         if parents and selected_parent is None:
             parents.sort( key = lambda x: self.value(node, x) )
             return parents[-1]
@@ -133,21 +133,21 @@ class MeliaeAdapter( squaremap.DefaultAdapter ):
                     fp.close()
                 node['filename'] = pathname
         elif not 'filename' in node:
-            return None 
+            return None
         return node['filename']
 
 class TestApp(wx.App):
     """Basic application for holding the viewing Frame"""
-    handler = wx.PNGHandler()
+    #handler = wx.PNGHandler()
     def OnInit(self):
         """Initialise the application"""
-        wx.Image.AddHandler(self.handler)
+        #wx.Image.AddHandler(self.handler)
         self.frame = frame = wx.Frame( None,
         )
         frame.CreateStatusBar()
 
         model = model = self.get_model( sys.argv[1])
-        self.sq = squaremap.SquareMap( 
+        self.sq = squaremap.SquareMap(
             frame, model=model, adapter = MeliaeAdapter(), padding=2, margin=1,
             square_style=True
         )

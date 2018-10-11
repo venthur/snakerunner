@@ -21,7 +21,7 @@ if sys.platform == 'win32':
 else:
     windows = False
 if sys.platform == 'darwin':
-    osx = True 
+    osx = True
 else:
     osx = False
 
@@ -126,7 +126,7 @@ def mem_name( x ):
         if isinstance(value,(str,unicode)) and len(value) > MAX_NAME_LEN:
             return value[:MAX_NAME_LEN-3]+'...'
         else:
-            return value 
+            return value
     return ''
 
 MEMORY_VIEW_COLUMNS = [
@@ -189,7 +189,7 @@ class MainFrame(wx.Frame):
     """The root frame for the display of a single data-set"""
     loader = None
     percentageView = False
-    
+
     historyIndex = -1
     activated_node = None
     selected_node = None
@@ -250,7 +250,7 @@ class MainFrame(wx.Frame):
         )
 
         self.CreateSourceWindow(self.tabs)
-        
+
         self.calleeListControl = listviews.DataView(
             self.tabs,
             columns = PROFILE_VIEW_COLUMNS,
@@ -287,25 +287,27 @@ class MainFrame(wx.Frame):
         self.rightSplitter.SetSashSize(10)
         # calculate size as proportional value for initial display...
         self.LoadState( config_parser )
-        width, height = self.GetSizeTuple()
+        width, height = self.GetSize()
         rightsplit = 2 * (height // 3)
         leftsplit = width // 3
         self.rightSplitter.SplitHorizontally(self.squareMap, self.tabs,
                                              rightsplit)
         self.leftSplitter.SplitVertically(self.listControl, self.rightSplitter,
                                           leftsplit)
-        squaremap.EVT_SQUARE_HIGHLIGHTED(self.squareMap,
-                                         self.OnSquareHighlightedMap)
-        squaremap.EVT_SQUARE_SELECTED(self.listControl,
-                                      self.OnSquareSelectedList)
-        squaremap.EVT_SQUARE_SELECTED(self.squareMap, self.OnSquareSelectedMap)
-        squaremap.EVT_SQUARE_ACTIVATED(self.squareMap, self.OnNodeActivated)
+        self.squareMap.Bind(squaremap.EVT_SQUARE_HIGHLIGHTED,
+                            self.OnSquareHighlightedMap)
+        self.listControl.Bind(squaremap.EVT_SQUARE_SELECTED,
+                              self.OnSquareSelectedList)
+        self.squareMap.Bind(squaremap.EVT_SQUARE_SELECTED,
+                            self.OnSquareSelectedMap)
+        self.squareMap.Bind(squaremap.EVT_SQUARE_ACTIVATED,
+                            self.OnNodeActivated)
         for control in self.ProfileListControls:
-            squaremap.EVT_SQUARE_ACTIVATED(control, self.OnNodeActivated)
-            squaremap.EVT_SQUARE_HIGHLIGHTED(control,
-                                             self.OnSquareHighlightedList)
+            control.Bind(squaremap.EVT_SQUARE_ACTIVATED, self.OnNodeActivated)
+            control.Bind(squaremap.EVT_SQUARE_HIGHLIGHTED,
+                         self.OnSquareHighlightedList)
         self.moreSquareViewItem.Check(self.squareMap.square_style)
-        
+
     def CreateMenuBar(self):
         """Create our menu-bar for triggering operations"""
         menubar = wx.MenuBar()
@@ -350,23 +352,23 @@ class MainFrame(wx.Frame):
         )
 #        wx.ToolTip.Enable(True)
         menubar.Append(menu, _('&View'))
-        
+
         self.viewTypeMenu =wx.Menu( )
         menubar.Append(self.viewTypeMenu, _('View &Type'))
-        
+
         self.SetMenuBar(menubar)
 
-        wx.EVT_MENU(self, ID_EXIT, lambda evt: self.Close(True))
-        wx.EVT_MENU(self, ID_OPEN, self.OnOpenFile)
-        wx.EVT_MENU(self, ID_OPEN_MEMORY, self.OnOpenMemory)
-        
-        wx.EVT_MENU(self, ID_PERCENTAGE_VIEW, self.OnPercentageView)
-        wx.EVT_MENU(self, ID_UP_VIEW, self.OnUpView)
-        wx.EVT_MENU(self, ID_DEEPER_VIEW, self.OnDeeperView)
-        wx.EVT_MENU(self, ID_SHALLOWER_VIEW, self.OnShallowerView)
-        wx.EVT_MENU(self, ID_ROOT_VIEW, self.OnRootView)
-        wx.EVT_MENU(self, ID_BACK_VIEW, self.OnBackView)
-        wx.EVT_MENU(self, ID_MORE_SQUARE, self.OnMoreSquareToggle)
+        self.Bind(wx.EVT_MENU, lambda evt: self.Close(True), id=ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.OnOpenFile, id=ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.OnOpenMemory, id=ID_OPEN_MEMORY)
+
+        self.Bind(wx.EVT_MENU, self.OnPercentageView, id=ID_PERCENTAGE_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnUpView, id=ID_UP_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnDeeperView, id=ID_DEEPER_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnShallowerView, id=ID_SHALLOWER_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnRootView, id=ID_ROOT_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnBackView, id=ID_BACK_VIEW)
+        self.Bind(wx.EVT_MENU, self.OnMoreSquareToggle, id=ID_MORE_SQUARE)
 
     def LoadRSRIcon( self ):
         try:
@@ -393,22 +395,23 @@ class MainFrame(wx.Frame):
         tb.ToolBitmapSize = tsize
         open_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR,
                                             tsize)
-        tb.AddLabelTool(ID_OPEN, "Open", open_bmp, shortHelp="Open",
-                        longHelp="Open a (c)Profile trace file")
+        tb.AddTool(ID_OPEN, "Open", open_bmp, wx.NullBitmap,
+                   shortHelp="Open",
+                   longHelp="Open a (c)Profile trace file")
         if not osx:
             tb.AddSeparator()
 #        self.Bind(wx.EVT_TOOL, self.OnOpenFile, id=ID_OPEN)
-        self.rootViewTool = tb.AddLabelTool(
+        self.rootViewTool = tb.AddTool(
             ID_ROOT_VIEW, _("Root View"),
             wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR, tsize),
             shortHelp=_("Display the root of the current view tree (home view)")
         )
-        self.rootViewTool = tb.AddLabelTool(
+        self.rootViewTool = tb.AddTool(
             ID_BACK_VIEW, _("Back"),
             wx.ArtProvider.GetBitmap(wx.ART_GO_BACK, wx.ART_TOOLBAR, tsize),
             shortHelp=_("Back to the previously activated node in the call tree")
         )
-        self.upViewTool = tb.AddLabelTool(
+        self.upViewTool = tb.AddTool(
             ID_UP_VIEW, _("Up"),
             wx.ArtProvider.GetBitmap(wx.ART_GO_UP, wx.ART_TOOLBAR, tsize),
             shortHelp=_("Go one level up the call tree (highest-percentage parent)")
@@ -420,56 +423,56 @@ class MainFrame(wx.Frame):
         self.percentageViewTool.SetToolTip(wx.ToolTip(
             _("Toggle display of percentages in list views")))
         tb.AddControl(self.percentageViewTool)
-        wx.EVT_CHECKBOX(self.percentageViewTool,
-                        self.percentageViewTool.GetId(), self.OnPercentageView)
+        self.percentageViewTool.Bind(wx.EVT_CHECKBOX, self.OnPercentageView,
+                                     id=self.percentageViewTool.GetId())
 
         self.viewTypeTool= wx.Choice( tb, -1, choices= getattr(self.loader,'ROOTS',[]) )
         self.viewTypeTool.SetToolTip(wx.ToolTip(
             _("Switch between different hierarchic views of the data")))
-        wx.EVT_CHOICE( self.viewTypeTool, self.viewTypeTool.GetId(), self.OnViewTypeTool )
+        self.viewTypeTool.Bind(wx.EVT_CHOICE, self.OnViewTypeTool,
+                               id=self.viewTypeTool.GetId())
         tb.AddControl( self.viewTypeTool )
         tb.Realize()
-    
+
     def OnViewTypeTool( self, event ):
         """When the user changes the selection, make that our selection"""
         new = self.viewTypeTool.GetStringSelection()
         if new != self.viewType:
             self.viewType = new
             self.OnRootView( event )
-    
+
     def ConfigureViewTypeChoices( self, event=None ):
         """Configure the set of View types in the toolbar (and menus)"""
         self.viewTypeTool.SetItems( getattr( self.loader, 'ROOTS', [] ))
         if self.loader and self.viewType in self.loader.ROOTS:
             self.viewTypeTool.SetSelection( self.loader.ROOTS.index( self.viewType ))
-            
+
         # configure the menu with the available choices...
         def chooser( typ ):
             def Callback( event ):
                 if typ != self.viewType:
-                    self.viewType = typ 
+                    self.viewType = typ
                     self.OnRootView( event )
             return Callback
         # Clear all previous items
         for item in self.viewTypeMenu.GetMenuItems():
-            self.viewTypeMenu.DeleteItem( item )
+            self.viewTypeMenu.DestroyItem( item )
         if self.loader and self.loader.ROOTS:
             for root in self.loader.ROOTS:
-                item = wx.MenuItem( 
-                    self.viewTypeMenu, -1, root.title(), 
+                item = wx.MenuItem(
+                    self.viewTypeMenu, -1, root.title(),
                     _("View hierarchy by %(name)s")%{
                         'name': root.title(),
                     },
                     kind=wx.ITEM_RADIO,
                 )
-                item.SetCheckable( True )
-                self.viewTypeMenu.AppendItem( item )
+                self.viewTypeMenu.Append(item)
                 item.Check( root == self.viewType )
-                wx.EVT_MENU( self, item.GetId(), chooser( root ))
+                self.Bind(wx.EVT_MENU, chooser(root), id=item.GetId())
 
     def OnOpenFile(self, event):
         """Request to open a new profile file"""
-        dialog = wx.FileDialog(self, style=wx.OPEN|wx.FD_MULTIPLE)
+        dialog = wx.FileDialog(self, style=wx.FD_OPEN|wx.FD_MULTIPLE)
         if dialog.ShowModal() == wx.ID_OK:
             paths = dialog.GetPaths()
             if self.loader:
@@ -481,7 +484,7 @@ class MainFrame(wx.Frame):
                 self.load(*paths)
     def OnOpenMemory(self, event):
         """Request to open a new profile file"""
-        dialog = wx.FileDialog(self, style=wx.OPEN)
+        dialog = wx.FileDialog(self, style=wx.FD_OPEN)
         if dialog.ShowModal() == wx.ID_OK:
             path = dialog.GetPath()
             if self.loader:
@@ -540,7 +543,7 @@ class MainFrame(wx.Frame):
         node = self.activated_node
         parents = []
         selected_parent = None
-        
+
         if node:
             if hasattr( self.adapter, 'best_parent' ):
                 selected_parent = self.adapter.best_parent( node )
@@ -604,7 +607,7 @@ class MainFrame(wx.Frame):
         self.SetStatusText(self.adapter.label(event.node))
         self.listControl.SetIndicated(event.node)
         text = self.squareMap.adapter.label(event.node)
-        self.squareMap.SetToolTipString(text)
+        self.squareMap.SetToolTip(text)
         self.SetStatusText(text)
 
     def OnSquareHighlightedList(self, event):
@@ -629,7 +632,7 @@ class MainFrame(wx.Frame):
         self.callerListControl.integrateRecords(self.adapter.parents( event.node) )
         #self.allCalleeListControl.integrateRecords(event.node.descendants())
         #self.allCallerListControl.integrateRecords(event.node.ancestors())
-    
+
     def OnMoreSquareToggle( self, event ):
         """Toggle the more-square view (better looking, but more likely to filter records)"""
         self.squareMap.square_style = not self.squareMap.square_style
@@ -717,11 +720,11 @@ class MainFrame(wx.Frame):
         tree = self.loader.get_root( self.viewType )
         adapter = self.loader.get_adapter( self.viewType )
         rows = self.loader.get_rows( self.viewType )
-        
+
         adapter.SetPercentage(self.percentageView, adapter.value( tree ))
-        
+
         return adapter, tree, rows
-    
+
     def SaveState( self, config_parser ):
         """Retrieve window state to be restored on the next run..."""
         if not config_parser.has_section( 'window' ):
@@ -730,13 +733,13 @@ class MainFrame(wx.Frame):
             config_parser.set( 'window', 'maximized', str(True))
         else:
             config_parser.set( 'window', 'maximized', str(False))
-        size = self.GetSizeTuple()
-        position = self.GetPositionTuple()
+        size = self.GetSize()
+        position = self.GetPosition()
         config_parser.set( 'window', 'width', str(size[0]) )
         config_parser.set( 'window', 'height', str(size[1]) )
         config_parser.set( 'window', 'x', str(position[0]) )
         config_parser.set( 'window', 'y', str(position[1]) )
-        
+
         for control in self.ProfileListControls:
             control.SaveState( config_parser )
 
@@ -749,7 +752,7 @@ class MainFrame(wx.Frame):
             return
         if (
             not config_parser.has_section( 'window' ) or (
-                config_parser.has_option( 'window','maximized' ) and 
+                config_parser.has_option( 'window','maximized' ) and
                 config_parser.getboolean( 'window', 'maximized' )
             )
         ):
@@ -779,12 +782,12 @@ class MainFrame(wx.Frame):
             font.SetPointSize(font_size)
             for ctrl in self.ProfileListControls:
                 ctrl.SetFont(font)
-        
+
         for control in self.ProfileListControls:
             control.LoadState( config_parser )
-        
+
         self.config = config_parser
-        wx.EVT_CLOSE( self, self.OnCloseWindow )
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
 
     def OnCloseWindow( self, event=None ):
@@ -800,10 +803,10 @@ class MainFrame(wx.Frame):
 
 class RunSnakeRunApp(wx.App):
     """Basic application for holding the viewing Frame"""
-    handler = wx.PNGHandler()
+    #handler = wx.PNGHandler()
     def OnInit(self):
         """Initialise the application"""
-        wx.Image.AddHandler(self.handler)
+        #wx.Image.AddHandler(self.handler)
         frame = MainFrame( config_parser = load_config())
         frame.Show(True)
         self.SetTopWindow(frame)
@@ -816,7 +819,7 @@ class RunSnakeRunApp(wx.App):
             else:
                 wx.CallAfter(frame.load, *sys.argv[1:])
         return True
-    
+
 class MeliaeViewApp(wx.App):
     handler = wx.PNGHandler()
     def OnInit(self):
@@ -836,9 +839,9 @@ def getIcon( data ):
     """Return the data from the resource as a wxIcon"""
     import cStringIO
     stream = cStringIO.StringIO(data)
-    image = wx.ImageFromStream(stream)
-    icon = wx.EmptyIcon()
-    icon.CopyFromBitmap(wx.BitmapFromImage(image))
+    image = wx.Image(stream)
+    icon = wx.Icon()
+    icon.CopyFromBitmap(wx.Bitmap(image))
     return icon
 
 def config_directory():
@@ -850,7 +853,7 @@ def config_directory():
 def config_file():
     directory = config_directory()
     return os.path.join( directory, 'runsnake.conf' )
-    
+
 def load_config( ):
     config = ConfigParser.SafeConfigParser()
     filename = config_file()
@@ -874,7 +877,7 @@ def meliaemain():
     logging.basicConfig(level=logging.INFO)
     app = MeliaeViewApp(0)
     app.MainLoop()
-    
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     main()
