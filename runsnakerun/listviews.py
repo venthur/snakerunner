@@ -271,7 +271,7 @@ class DataView(wx.ListCtrl):
             column = self.columns[col]
             value = column.get(self.sorted[item])
         except IndexError as err:
-            return None
+            return ''
         else:
             if value is None:
                 return ''
