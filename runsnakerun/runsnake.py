@@ -16,7 +16,7 @@ except ImportError as err:
 from gettext import gettext as _
 import pstats
 from runsnakerun import squaremap
-from runsnakerun import pstatsloader, pstatsadapter, meliaeloader, meliaeadapter
+from runsnakerun import pstatsloader, pstatsadapter
 from runsnakerun import listviews
 from runsnakerun import homedirectory
 
@@ -32,7 +32,6 @@ else:
 log = logging.getLogger(__name__)
 
 ID_OPEN = wx.NewId()
-ID_OPEN_MEMORY = wx.NewId()
 ID_EXIT = wx.NewId()
 
 ID_TREE_TYPE = wx.NewId()
@@ -117,76 +116,6 @@ PROFILE_VIEW_COLUMNS = [
         sortOn=('directory', 'filename', 'lineno'),
         defaultOrder=True,
         targetWidth=90,
-    ),
-]
-
-MAX_NAME_LEN = 64
-
-
-def mem_name(x):
-    if x.get('name'):
-        return x['name']
-    value = x.get('value')
-    if value:
-        if isinstance(value, str) and len(value) > MAX_NAME_LEN:
-            return value[:MAX_NAME_LEN-3]+'...'
-        else:
-            return value
-    return ''
-
-
-MEMORY_VIEW_COLUMNS = [
-    listviews.DictColumn(
-        name=_('Type'),
-        attribute='type',
-        targetWidth=20,
-        defaultOrder=True,
-    ),
-    listviews.DictColumn(
-        name=_('Name'),
-        attribute='name',
-        targetWidth=20,
-        getter=mem_name,
-        defaultOrder=True,
-    ),
-    listviews.DictColumn(
-        name=_('Cum'),
-        attribute='totsize',
-        targetWidth=5,
-        defaultOrder=False,
-        format='%0.1f',
-        percentPossible=True,
-        sortDefault=True,
-    ),
-    listviews.DictColumn(
-        name=_('Local'),
-        attribute='size',
-        defaultOrder=False,
-        format='%0.1f',
-        percentPossible=True,
-        targetWidth=5,
-    ),
-    listviews.DictColumn(
-        name=_('Children'),
-        attribute='rsize',
-        format='%0.1f',
-        percentPossible=True,
-        defaultOrder=False,
-        targetWidth=5,
-    ),
-    listviews.DictColumn(
-        name=_('/Refs'),
-        attribute='parents',
-        defaultOrder=False,
-        targetWidth=4,
-        getter=lambda x: len(x.get('parents', ())),
-    ),
-    listviews.DictColumn(
-        name=_('Refs/'),
-        attribute='children',
-        defaultOrder=False,
-        targetWidth=4,
-        getter=lambda x: len(x.get('children', ())),
     ),
 ]
 
@@ -319,8 +248,6 @@ class MainFrame(wx.Frame):
         menubar = wx.MenuBar()
         menu = wx.Menu()
         menu.Append(ID_OPEN, _('&Open Profile'), _('Open a cProfile file'))
-        menu.Append(ID_OPEN_MEMORY, _('Open &Memory'),
-                    _('Open a Meliae memory-dump file'))
         menu.AppendSeparator()
         menu.Append(ID_EXIT, _('&Close'), _('Close this RunSnakeRun window'))
         menubar.Append(menu, _('&File'))
@@ -368,7 +295,6 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, lambda evt: self.Close(True), id=ID_EXIT)
         self.Bind(wx.EVT_MENU, self.OnOpenFile, id=ID_OPEN)
-        self.Bind(wx.EVT_MENU, self.OnOpenMemory, id=ID_OPEN_MEMORY)
 
         self.Bind(wx.EVT_MENU, self.OnPercentageView, id=ID_PERCENTAGE_VIEW)
         self.Bind(wx.EVT_MENU, self.OnUpView, id=ID_UP_VIEW)
@@ -496,19 +422,6 @@ class MainFrame(wx.Frame):
                 frame.load(*paths)
             else:
                 self.load(*paths)
-
-    def OnOpenMemory(self, event):
-        """Request to open a new profile file"""
-        dialog = wx.FileDialog(self, style=wx.FD_OPEN)
-        if dialog.ShowModal() == wx.ID_OK:
-            path = dialog.GetPath()
-            if self.loader:
-                # we've already got a displayed data-set, open new window...
-                frame = MainFrame()
-                frame.Show(True)
-                frame.load_memory(path)
-            else:
-                self.load_memory(path)
 
     def OnShallowerView(self, event):
         if not self.squareMap.max_depth:
@@ -710,15 +623,6 @@ class MainFrame(wx.Frame):
                     err=err
                 ))
 
-    def load_memory(self, filename):
-        self.viewType = 'memory'
-        for view in self.ProfileListControls:
-            view.SetColumns(MEMORY_VIEW_COLUMNS)
-        self.loader = meliaeloader.Loader(filename)
-        self.ConfigureViewTypeChoices()
-        self.viewType = self.loader.ROOTS[0]
-        self.SetModel(self.loader)
-
     def load_coldshot(self, dirname):
         from runsnakerun import coldshotadapter
         self.loader = coldshotadapter.Loader(dirname)
@@ -833,29 +737,7 @@ class RunSnakeRunApp(wx.App):
         frame.Show(True)
         self.SetTopWindow(frame)
         if sys.argv[1:]:
-            if sys.argv[1] == '-m':
-                if sys.argv[2:]:
-                    wx.CallAfter(frame.load_memory, sys.argv[2])
-                else:
-                    log.warn('No memory file specified')
-            else:
-                wx.CallAfter(frame.load, *sys.argv[1:])
-        return True
-
-
-class MeliaeViewApp(wx.App):
-    handler = wx.PNGHandler()
-
-    def OnInit(self):
-        """Initialise the application"""
-        wx.Image.AddHandler(self.handler)
-        frame = MainFrame(config_parser=load_config())
-        frame.Show(True)
-        self.SetTopWindow(frame)
-        if sys.argv[1:]:
-            wx.CallAfter(frame.load_memory, sys.argv[1])
-        else:
-            log.warn('No memory file specified')
+            wx.CallAfter(frame.load, *sys.argv[1:])
         return True
 
 
@@ -890,23 +772,10 @@ def load_config():
     return config
 
 
-usage = """runsnake.py profilefile
-runsnake.py -m meliae.memoryfile
-
-profilefile -- a file generated by a HotShot profile run from Python
-"""
-
-
 def main():
     """Mainloop for the application"""
     logging.basicConfig(level=logging.INFO)
     app = RunSnakeRunApp(0)
-    app.MainLoop()
-
-
-def meliaemain():
-    logging.basicConfig(level=logging.INFO)
-    app = MeliaeViewApp(0)
     app.MainLoop()
 
 

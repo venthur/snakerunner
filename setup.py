@@ -41,12 +41,10 @@ and package/module structures.""",
         gui_commands = [
             'runsnake=runsnakerun.macshim:macshim',
             'runsnake32=runsnakerun.runsnake:main',
-            'runsnakemem=runsnakerun.runsnake:meliaemain',
         ]
     else:
         gui_commands = [
             'runsnake=runsnakerun.runsnake:main',
-            'runsnakemem=runsnakerun.runsnake:meliaemain',
         ]
     setup (
         name = "RunSnakeRun",
