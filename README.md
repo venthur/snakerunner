@@ -1,7 +1,7 @@
 ## Snakerunner
 
-This is a fork of the seemingly discontinued [RunSnakeRun], ported to
-Python3.
+This is a fork of the seemingly discontinued [RunSnakeRun], ported to Python3.
+
 
 ### Status
 
@@ -16,6 +16,14 @@ and up to current best practices and standards.
 
 * Python3
 * wxpython 4
+
+
+### Modifications since the Fork
+
+* Python3 compatibility
+* Updated to current wxpython version
+* Merged `squaremap` library into the project
+* Removed support for Meliae memory profiling
 
 
 [RunSnakeRun]: http://www.vrplumber.com/programming/runsnakerun/
