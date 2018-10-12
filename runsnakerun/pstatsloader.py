@@ -74,7 +74,7 @@ class PStatsLoader(object):
         cycles by sorting on cumulative time, and then collecting the traced
         roots (or, if they are all on the same root, use that).
         """
-        maxes = sorted(rows.values(), key=lambda x: x.cumulative)
+        maxes = sorted(list(rows.values()), key=lambda x: x.cumulative)
         if not maxes:
             raise RuntimeError("""Null results!""")
         root = maxes[-1]

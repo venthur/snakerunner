@@ -131,6 +131,8 @@ class DataView(wx.ListCtrl):
         """We have double-clicked for hit enter on a node refocus squaremap to this node"""
         try:
             node = self.sorted[event.GetIndex()]
+        except AttributeError:
+            pass
         except IndexError as err:
             log.warn(_('Invalid index in node activated: %(index)s'),
                      index=event.GetIndex())
@@ -145,6 +147,8 @@ class DataView(wx.ListCtrl):
         """We have selected a node with the list control, tell the world"""
         try:
             node = self.sorted[event.GetIndex()]
+        except AttributeError:
+            pass
         except IndexError as err:
             log.warn(_('Invalid index in node selected: %(index)s'),
                      index=event.GetIndex())
@@ -163,8 +167,7 @@ class DataView(wx.ListCtrl):
             try:
                 node = self.sorted[item]
             except IndexError as err:
-                log.warn(_('Invalid index in mouse move: %(index)s'),
-                         index=event.GetIndex())
+                log.warn(_('Invalid index in mouse move.'))
             else:
                 wx.PostEvent(
                     self,

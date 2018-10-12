@@ -629,7 +629,7 @@ class MainFrame(wx.Frame):
         """Set our overall model (a loader object) and populate sub-controls"""
         self.loader = loader
         self.adapter, tree, rows = self.RootNode()
-        self.listControl.integrateRecords(rows.values())
+        self.listControl.integrateRecords(list(rows.values()))
         self.activated_node = tree
         self.squareMap.SetModel(tree, self.adapter)
         self.RecordHistory()
