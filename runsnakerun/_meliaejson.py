@@ -25,7 +25,7 @@ attr = r"""%(whitespace)s*%(key)s%(whitespace)s*:%(whitespace)s*(%(intlist)s|%(s
 escape = re.compile(escape, re.U)
 simple_escape = re.compile(r'\\([^uU])', re.U)
 
-assert escape.match("\u0000")
+assert escape.match("\\u0000")
 attr = re.compile(attr)
 string = re.compile(string)
 integer = re.compile(integer)
@@ -63,7 +63,7 @@ def loads(source):
             value = int(match.group('int'))
         elif match.group('string') is not None:
             def deescape(match):
-                return unichr(int(match.group(0)[2:], 16))
+                return chr(int(match.group(0)[2:], 16))
             value = match.group('string').decode('utf-8')
             value = escape.sub(
                 deescape,

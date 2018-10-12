@@ -26,7 +26,7 @@ def main():
     fh = open(filename, 'wb')
     scanner.dump_all_objects(fh)
     fh.close()
-    print 'saved memory dump to: %r' % (filename, )
+    print('saved memory dump to: %r' % (filename, ))
 
 
 if __name__ == "__main__":

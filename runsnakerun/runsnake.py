@@ -7,10 +7,10 @@ import os
 import logging
 import traceback
 log = logging.getLogger(__name__)
-import ConfigParser
+import configparser
 try:
     from wx.py import editor, editwindow
-except ImportError, err:
+except ImportError as err:
     log.info('No editor available: %s', err)
     editor = None
 from gettext import gettext as _
@@ -128,7 +128,7 @@ def mem_name(x):
         return x['name']
     value = x.get('value')
     if value:
-        if isinstance(value, (str, unicode)) and len(value) > MAX_NAME_LEN:
+        if isinstance(value, str) and len(value) > MAX_NAME_LEN:
             return value[:MAX_NAME_LEN-3]+'...'
         else:
             return value
@@ -382,7 +382,7 @@ class MainFrame(wx.Frame):
         try:
             from runsnakerun.resources import rsricon_png
             return getIcon(rsricon_png.data)
-        except Exception, err:
+        except Exception as err:
             return None
 
     sourceCodeControl = None
@@ -393,7 +393,7 @@ class MainFrame(wx.Frame):
             self.sourceCodeControl = wx.py.editwindow.EditWindow(
                 self.tabs, -1
             )
-            self.sourceCodeControl.SetText(u"")
+            self.sourceCodeControl.SetText("")
             self.sourceFileShown = None
             self.sourceCodeControl.setDisplayLineNumbers(True)
 
@@ -583,7 +583,7 @@ class MainFrame(wx.Frame):
         self.historyIndex -= 1
         try:
             self.RestoreHistory(self.history[self.historyIndex])
-        except IndexError, err:
+        except IndexError as err:
             self.SetStatusText(_('No further history available'))
 
     def OnRootView(self, event):
@@ -610,7 +610,7 @@ class MainFrame(wx.Frame):
         if filename and self.sourceFileShown != filename:
             try:
                 data = open(filename).read()
-            except Exception, err:
+            except Exception as err:
                 # TODO: load from zips/eggs? What about .pyc issues?
                 return None
             else:
@@ -666,7 +666,7 @@ class MainFrame(wx.Frame):
             if self.historyIndex < -1:
                 try:
                     del self.history[self.historyIndex+1:]
-                except AttributeError, err:
+                except AttributeError as err:
                     pass
             if (not self.history) or record != self.history[-1]:
                 self.history.append(record)
@@ -702,7 +702,7 @@ class MainFrame(wx.Frame):
             self.viewType = self.loader.ROOTS[0]
             self.SetTitle(_("Run Snake Run: %(filenames)s")
                           % {'filenames': ', '.join(filenames)[:120]})
-        except (IOError, OSError, ValueError, MemoryError), err:
+        except (IOError, OSError, ValueError, MemoryError) as err:
             self.SetStatusText(
                 _('Failure during load of %(filenames)s: %(err)s'
                   ) % dict(
@@ -784,10 +784,10 @@ class MainFrame(wx.Frame):
             ]
             self.SetPosition((x, y))
             self.SetSize((width, height))
-        except ConfigParser.NoSectionError, err:
+        except configparser.NoSectionError as err:
             # the file isn't written yet, so don't even warn...
             pass
-        except Exception, err:
+        except Exception as err:
             # this is just convenience, if it breaks in *any* way, ignore it...
             log.error(
                 "Unable to load window preferences, ignoring: %s", traceback.format_exc()
@@ -816,7 +816,7 @@ class MainFrame(wx.Frame):
             temp = config + '~'
             self.config.write(open(temp, 'w'))
             os.rename(temp, config)
-        except Exception, err:
+        except Exception as err:
             log.error("Unable to write window preferences, ignoring: %s",
                       traceback.format_exc())
         self.Destroy()
@@ -861,8 +861,8 @@ class MeliaeViewApp(wx.App):
 
 def getIcon(data):
     """Return the data from the resource as a wxIcon"""
-    import cStringIO
-    stream = cStringIO.StringIO(data)
+    import io
+    stream = io.StringIO(data)
     image = wx.Image(stream)
     icon = wx.Icon()
     icon.CopyFromBitmap(wx.Bitmap(image))
@@ -883,7 +883,7 @@ def config_file():
 
 
 def load_config():
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     filename = config_file()
     if os.path.exists(filename):
         config.read(filename)

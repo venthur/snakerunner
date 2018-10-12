@@ -4,12 +4,12 @@
 Trees:
 
     * has-a
-        * module root 
-        * each held reference contributes a weighted cost to the parent 
+        * module root
+        * each held reference contributes a weighted cost to the parent
         * hierarchy of held objects, so globals, classes, functions, and their children
         * held modules do not contribute to cost
-        
-        * module 
+
+        * module
             * instance-tree
 """
 import logging
@@ -17,13 +17,7 @@ import sys
 import weakref
 log = logging.getLogger(__name__)
 from gettext import gettext as _
-try:
-    from _meliaejson import loads as json_loads
-except ImportError, err:
-    try:
-        from json import loads as json_loads
-    except ImportError, err:
-        from simplejson import loads as json_loads
+from ._meliaejson import loads as json_loads
 import sys
 
 LOOP_TYPE = _('<loop>')
@@ -36,10 +30,10 @@ STOP_TYPES = set(['module'])
 def recurse(record, index, stop_types=STOP_TYPES, already_seen=None, type_group=False):
     """Depth first traversal of a tree, all children are yielded before parent
 
-    record -- dictionary record to be recursed upon 
-    index -- mapping 'address' ids to dictionary records 
-    stop_types -- types which will *not* recurse 
-    already_seen -- set storing already-visited nodes 
+    record -- dictionary record to be recursed upon
+    index -- mapping 'address' ids to dictionary records
+    stop_types -- types which will *not* recurse
+    already_seen -- set storing already-visited nodes
 
     yields the traversed nodes
     """
@@ -131,7 +125,7 @@ def children(record, index, key='refs', stop_types=STOP_TYPES):
     for ref in record.get(key, []):
         try:
             record = index[ref]
-        except KeyError, err:
+        except KeyError as err:
             #print 'No record for %s address %s in %s'%(key, ref, record['address'] )
             # happens when an unreachable references a reachable that has been compressed out...
             pass
@@ -152,7 +146,7 @@ def children_types(record, index, key='refs', stop_types=STOP_TYPES):
 def recurse_module(overall_record, index, shared, stop_types=STOP_TYPES, already_seen=None, min_size=0):
     """Creates a has-a recursive-cost hierarchy
 
-    Mutates objects in-place to produce a hierarchy of memory usage based on 
+    Mutates objects in-place to produce a hierarchy of memory usage based on
     reference-holding cost assignment
     """
     for record in recurse(
@@ -198,7 +192,7 @@ def rewrite_refs(targets, old, new, index, key='refs', single_ref=False):
         if not isinstance(parent, dict):
             try:
                 parent = index[parent]
-            except KeyError, err:
+            except KeyError as err:
                 continue
         rewrite_references(parent[key], old, new, single_ref=single_ref)
 
@@ -206,8 +200,8 @@ def rewrite_refs(targets, old, new, index, key='refs', single_ref=False):
 def rewrite_references(sequence, old, new, single_ref=False):
     """Rewrite parents to point to new in old
 
-    sequence -- sequence of id references 
-    old -- old id 
+    sequence -- sequence of id references
+    old -- old id
     new -- new id
 
     returns rewritten sequence
@@ -282,11 +276,11 @@ def group_children(index, shared, min_kids=10, stop_types=STOP_TYPES, delete_chi
             for address in kid_addresses:
                 try:
                     del index[address]
-                except KeyError, err:
+                except KeyError as err:
                     pass  # already compressed out
                 try:
                     del shared[address]
-                except KeyError, err:
+                except KeyError as err:
                     pass  # already compressed out
             index[typ_address]['refs'] = []
         else:
@@ -303,7 +297,7 @@ ALWAYS_COMPRESS_DICTS = set(['module'])
 
 
 def simplify_dicts(index, shared, simplify_dicts=SIMPLIFY_DICTS, always_compress=ALWAYS_COMPRESS_DICTS):
-    """Eliminate "noise" dictionary records from the index 
+    """Eliminate "noise" dictionary records from the index
 
     index -- overall index of objects (including metadata such as type records)
     shared -- parent-count mapping for records in index
@@ -374,7 +368,7 @@ def find_reachable(modules, index, shared, stop_types=STOP_TYPES):
 def deparent_unreachable(reachable, shared):
     """Eliminate all parent-links from unreachable objects from reachable objects
     """
-    for id, shares in shared.iteritems():
+    for id, shares in shared.items():
         if id in reachable:  # child is reachable
             filtered = [
                 x
@@ -406,10 +400,10 @@ def index_size(index):
 
 
 def iterindex(index):
-    for (k, v) in index.iteritems():
+    for (k, v) in index.items():
         if (
             isinstance(v, dict) and
-            isinstance(k, (int, long))
+            isinstance(k, int)
         ):
             yield v
 
@@ -423,7 +417,7 @@ def bind_parents(index, shared):
 def check_parents(index, reachable):
     for item in iterindex(index):
         if item['type'] == '<many>':
-            print 'parents', item['parents']
+            print('parents', item['parents'])
 
 
 def load(filename, include_interpreter=False):

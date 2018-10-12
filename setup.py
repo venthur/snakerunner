@@ -9,7 +9,7 @@ import os,sys
 try:
     from setuptools import setup
     setuptools = True
-except ImportError, err:
+except ImportError as err:
     from distutils.core import setup
     setuptools = False
 
