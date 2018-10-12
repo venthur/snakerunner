@@ -10,4 +10,3 @@ recursive-include doc *.png
 recursive-include doc *.css
 recursive-exclude . *.gz
 recursive-exclude . *.profile
-recursive-exclude . *.memory
