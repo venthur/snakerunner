@@ -1,10 +1,12 @@
-import wx
-import sys
 import os
 import logging
-log = logging.getLogger(__name__)
+
+import wx
+
 from runsnakerun import squaremap
 from runsnakerun import pstatsloader
+
+log = logging.getLogger(__name__)
 
 
 class PStatsAdapter(squaremap.DefaultAdapter):

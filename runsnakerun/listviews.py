@@ -1,12 +1,10 @@
-import wx
 import sys
-import os
 import logging
-import operator
-import traceback
 from gettext import gettext as _
+
+import wx
+
 from runsnakerun import squaremap
-from wx.lib.agw.ultimatelistctrl import UltimateListCtrl, ULC_REPORT, ULC_VIRTUAL, ULC_VRULES, ULC_SINGLE_SEL
 
 if sys.platform == 'win32':
     windows = True

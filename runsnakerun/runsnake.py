@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 """The main script for the RunSnakeRun profile viewer"""
 
-import wx
 import sys
 import os
 import logging
 import traceback
-log = logging.getLogger(__name__)
 import configparser
-try:
-    from wx.py import editor, editwindow
-except ImportError as err:
-    log.info('No editor available: %s', err)
-    editor = None
 from gettext import gettext as _
-import pstats
+
+import wx
+import wx.py
+
 from runsnakerun import squaremap
 from runsnakerun import pstatsloader, pstatsadapter
 from runsnakerun import listviews
@@ -217,8 +213,7 @@ class MainFrame(wx.Frame):
         self.tabs.AddPage(self.allCalleeListControl, _('All Callees'), False)
         self.tabs.AddPage(self.callerListControl, _('Callers'), False)
         self.tabs.AddPage(self.allCallerListControl, _('All Callers'), False)
-        if editor:
-            self.tabs.AddPage(self.sourceCodeControl, _('Source Code'), False)
+        self.tabs.AddPage(self.sourceCodeControl, _('Source Code'), False)
         self.rightSplitter.SetSashSize(10)
         # calculate size as proportional value for initial display...
         self.LoadState(config_parser)
@@ -315,7 +310,7 @@ class MainFrame(wx.Frame):
 
     def CreateSourceWindow(self, tabs):
         """Create our source-view window for tabs"""
-        if editor and self.sourceCodeControl is None:
+        if self.sourceCodeControl is None:
             self.sourceCodeControl = wx.py.editwindow.EditWindow(
                 self.tabs, -1
             )
@@ -511,10 +506,9 @@ class MainFrame(wx.Frame):
         self.activated_node = self.selected_node = event.node
         self.squareMap.SetModel(event.node, self.adapter)
         self.squareMap.SetSelected(event.node)
-        if editor:
-            if self.SourceShowFile(event.node):
-                if hasattr(event.node, 'lineno'):
-                    self.sourceCodeControl.GotoLine(event.node.lineno)
+        if self.SourceShowFile(event.node):
+            if hasattr(event.node, 'lineno'):
+                self.sourceCodeControl.GotoLine(event.node.lineno)
         self.RecordHistory()
 
     def SourceShowFile(self, node):

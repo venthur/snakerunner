@@ -2,8 +2,9 @@
 import pstats
 import os
 import logging
-log = logging.getLogger(__name__)
 from gettext import gettext as _
+
+log = logging.getLogger(__name__)
 
 TREE_CALLS, TREE_FILES = 0, 1
 

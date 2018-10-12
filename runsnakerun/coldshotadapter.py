@@ -1,11 +1,12 @@
 """Adapter for RunSnakeRun to load coldshot profiles"""
-import wx
-import sys
-import os
 import logging
-log = logging.getLogger(__name__)
-from runsnakerun import squaremap
+
+import wx
 from coldshot import stack, loader
+
+from runsnakerun import squaremap
+
+log = logging.getLogger(__name__)
 
 
 class BaseColdshotAdapter(squaremap.DefaultAdapter):

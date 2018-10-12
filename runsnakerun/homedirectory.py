@@ -9,7 +9,6 @@ try:
 except ImportError:
     winreg = None
 import os
-import sys
 
 
 # The registry keys where the SHGetFolderPath values appear to be stored

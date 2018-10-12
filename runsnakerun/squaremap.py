@@ -1,10 +1,13 @@
 #! /usr/bin/env python
-import wx
+
 import sys
 import os
 import logging
 import operator
+
+import wx
 import wx.lib.newevent
+
 log = logging.getLogger('squaremap')
 #log.setLevel( logging.DEBUG )
 
