@@ -3,7 +3,7 @@
 import time
 import cProfile
 import hotshot
-from subpackage.timewaster import r
+from .subpackage.timewaster import r
 
 
 def x():

@@ -5,7 +5,7 @@ import logging
 log = logging.getLogger(__name__)
 from gettext import gettext as _
 
-TREE_CALLS, TREE_FILES = range(2)
+TREE_CALLS, TREE_FILES = 0, 1
 
 
 class PStatsLoader(object):

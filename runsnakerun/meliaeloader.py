@@ -4,12 +4,12 @@
 Trees:
 
     * has-a
-        * module root 
-        * each held reference contributes a weighted cost to the parent 
+        * module root
+        * each held reference contributes a weighted cost to the parent
         * hierarchy of held objects, so globals, classes, functions, and their children
         * held modules do not contribute to cost
-        
-        * module 
+
+        * module
             * instance-tree
 """
 import logging
@@ -17,13 +17,7 @@ import sys
 import weakref
 log = logging.getLogger(__name__)
 from gettext import gettext as _
-try:
-    from _meliaejson import loads as json_loads
-except ImportError, err:
-    try:
-        from json import loads as json_loads
-    except ImportError as err:
-        from simplejson import loads as json_loads
+from ._meliaejson import loads as json_loads
 import sys
 
 LOOP_TYPE = _('<loop>')
@@ -36,10 +30,10 @@ STOP_TYPES = set(['module'])
 def recurse(record, index, stop_types=STOP_TYPES, already_seen=None, type_group=False):
     """Depth first traversal of a tree, all children are yielded before parent
 
-    record -- dictionary record to be recursed upon 
-    index -- mapping 'address' ids to dictionary records 
-    stop_types -- types which will *not* recurse 
-    already_seen -- set storing already-visited nodes 
+    record -- dictionary record to be recursed upon
+    index -- mapping 'address' ids to dictionary records
+    stop_types -- types which will *not* recurse
+    already_seen -- set storing already-visited nodes
 
     yields the traversed nodes
     """
@@ -152,7 +146,7 @@ def children_types(record, index, key='refs', stop_types=STOP_TYPES):
 def recurse_module(overall_record, index, shared, stop_types=STOP_TYPES, already_seen=None, min_size=0):
     """Creates a has-a recursive-cost hierarchy
 
-    Mutates objects in-place to produce a hierarchy of memory usage based on 
+    Mutates objects in-place to produce a hierarchy of memory usage based on
     reference-holding cost assignment
     """
     for record in recurse(
@@ -206,8 +200,8 @@ def rewrite_refs(targets, old, new, index, key='refs', single_ref=False):
 def rewrite_references(sequence, old, new, single_ref=False):
     """Rewrite parents to point to new in old
 
-    sequence -- sequence of id references 
-    old -- old id 
+    sequence -- sequence of id references
+    old -- old id
     new -- new id
 
     returns rewritten sequence
@@ -303,7 +297,7 @@ ALWAYS_COMPRESS_DICTS = set(['module'])
 
 
 def simplify_dicts(index, shared, simplify_dicts=SIMPLIFY_DICTS, always_compress=ALWAYS_COMPRESS_DICTS):
-    """Eliminate "noise" dictionary records from the index 
+    """Eliminate "noise" dictionary records from the index
 
     index -- overall index of objects (including metadata such as type records)
     shared -- parent-count mapping for records in index
