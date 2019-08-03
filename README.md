@@ -24,7 +24,8 @@ and up to current best practices and standards.
 * Updated to current wxpython version
 * Merged `squaremap` library into the project
 * Removed support for Meliae memory profiling
-
+* Replaced SafeConfigParser with ConfigParser
+* Replaced logger.warn with logger.warning
 
 [RunSnakeRun]: http://www.vrplumber.com/programming/runsnakerun/
 
