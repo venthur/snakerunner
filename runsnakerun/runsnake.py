@@ -759,7 +759,7 @@ def config_file():
 
 
 def load_config():
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     filename = config_file()
     if os.path.exists(filename):
         config.read(filename)
