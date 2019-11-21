@@ -24,8 +24,6 @@ setup(
     install_requires=[
         'wxpython',
     ],
-    extras_requires={"coldshot": ["coldshot"],  # Coldshot is a custom profiler that doesn't seem to exist anymore.
-                     "windows": ["pywin32"]},
     license="BSD",
     zip_safe=False,
     entry_points={

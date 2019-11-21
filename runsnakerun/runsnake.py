@@ -597,11 +597,6 @@ class MainFrame(wx.Frame):
 
     def load(self, *filenames):
         """Load our dataset (iteratively)"""
-        if len(filenames) == 1:
-            if os.path.basename(filenames[0]) == 'index.coldshot':
-                return self.load_coldshot(os.path.dirname(filenames[0]))
-            elif os.path.isdir(filenames[0]):
-                return self.load_coldshot(filenames[0])
         try:
             self.loader = pstatsloader.PStatsLoader(*filenames)
             self.ConfigureViewTypeChoices()
@@ -616,14 +611,6 @@ class MainFrame(wx.Frame):
                     filenames=" ".join([repr(x) for x in filenames]),
                     err=err
                 ))
-
-    def load_coldshot(self, dirname):
-        from runsnakerun import coldshotadapter
-        self.loader = coldshotadapter.Loader(dirname)
-        self.loader.load()
-        self.ConfigureViewTypeChoices()
-        self.viewType = self.loader.ROOTS[0]
-        self.SetModel(self.loader)
 
     def SetModel(self, loader):
         """Set our overall model (a loader object) and populate sub-controls"""
