@@ -3,8 +3,8 @@ import logging
 
 import wx
 
-from runsnakerun import squaremap
-from runsnakerun import pstatsloader
+from snakerunner import squaremap
+from snakerunner import pstatsloader
 
 log = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""The main script for the RunSnakeRun profile viewer"""
+"""The main script for the Snakerunner profile viewer"""
 
 import sys
 import os
@@ -11,10 +11,10 @@ from gettext import gettext as _
 import wx
 import wx.py
 
-from runsnakerun import squaremap
-from runsnakerun import pstatsloader, pstatsadapter
-from runsnakerun import listviews
-from runsnakerun import homedirectory
+from snakerunner import squaremap
+from snakerunner import pstatsloader, pstatsadapter
+from snakerunner import listviews
+from snakerunner import homedirectory
 
 if sys.platform == 'win32':
     windows = True
@@ -140,7 +140,7 @@ class MainFrame(wx.Frame):
         pos=wx.DefaultPosition,
         size=wx.DefaultSize,
         style=wx.DEFAULT_FRAME_STYLE | wx.CLIP_CHILDREN,
-        name=_("RunSnakeRun"),
+        name=_("Snakerunner"),
         config_parser=None,
     ):
         """Initialise the Frame"""
@@ -244,7 +244,7 @@ class MainFrame(wx.Frame):
         menu = wx.Menu()
         menu.Append(ID_OPEN, _('&Open Profile'), _('Open a cProfile file'))
         menu.AppendSeparator()
-        menu.Append(ID_EXIT, _('&Close'), _('Close this RunSnakeRun window'))
+        menu.Append(ID_EXIT, _('&Close'), _('Close this Snakerunner window'))
         menubar.Append(menu, _('&File'))
         menu = wx.Menu()
 #        self.packageMenuItem = menu.AppendCheckItem(
@@ -301,7 +301,7 @@ class MainFrame(wx.Frame):
 
     def LoadRSRIcon(self):
         try:
-            from runsnakerun.resources import rsricon_png
+            from snakerunner.resources import rsricon_png
             return getIcon(rsricon_png.data)
         except Exception as err:
             return None
@@ -734,7 +734,7 @@ def getIcon(data):
 
 def config_directory():
     base = homedirectory.appdatadirectory()
-    directory = os.path.join(base, 'RunSnakeRun')
+    directory = os.path.join(base, 'Snakerunner')
     if not os.path.exists(directory):
         os.makedirs(directory)
     return directory

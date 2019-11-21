@@ -40,7 +40,7 @@ class PStatsLoader(object):
             return self.rows
 
     def get_adapter(self, key):
-        from runsnakerun import pstatsadapter
+        from snakerunner import pstatsadapter
         if key == 'functions':
             return pstatsadapter.PStatsAdapter()
         elif key == 'location':

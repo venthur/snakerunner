@@ -4,7 +4,7 @@ from gettext import gettext as _
 
 import wx
 
-from runsnakerun import squaremap
+from snakerunner import squaremap
 
 if sys.platform == 'win32':
     windows = True

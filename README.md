@@ -2,6 +2,9 @@
 
 This is a fork of the seemingly discontinued [RunSnakeRun], ported to Python3.
 
+Snakerunner is a GUI viewer for Python profiling runs. It provides exorability
+and overall visualization of the call tree and package/module structures.
+
 
 ### Status
 

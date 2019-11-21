@@ -2,6 +2,7 @@
 
 ## [3.0.0] - yyyy-mm-dd
 
+* Renamed properly to Snakerunner
 * Removed coldshot support
 
 
