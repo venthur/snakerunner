@@ -3,6 +3,8 @@
 ## [3.0.0] - yyyy-mm-dd
 
 * Renamed properly to Snakerunner
+* Removed complicated guess-homedirectory logic and replaced it with
+  pathlib.Path.home()
 * Removed macshim.py
 * Removed coldshot support
 

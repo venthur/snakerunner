@@ -7,6 +7,7 @@ import logging
 import traceback
 import configparser
 from gettext import gettext as _
+from pathlib import Path
 
 import wx
 import wx.py
@@ -14,7 +15,6 @@ import wx.py
 from snakerunner import squaremap
 from snakerunner import pstatsloader, pstatsadapter
 from snakerunner import listviews
-from snakerunner import homedirectory
 
 if sys.platform == 'win32':
     windows = True
@@ -733,8 +733,7 @@ def getIcon(data):
 
 
 def config_directory():
-    base = homedirectory.appdatadirectory()
-    directory = os.path.join(base, 'Snakerunner')
+    directory = Path.home() / '.config' / 'Snakerunner'
     if not os.path.exists(directory):
         os.makedirs(directory)
     return directory
