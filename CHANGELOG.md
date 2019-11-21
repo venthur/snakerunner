@@ -3,6 +3,7 @@
 ## [3.0.0] - yyyy-mm-dd
 
 * Renamed properly to Snakerunner
+* Removed macshim.py
 * Removed coldshot support
 
 
