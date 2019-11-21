@@ -2,15 +2,14 @@
 """Creates hotshot and cProfile sample files"""
 import time
 import cProfile
-import hotshot
-from .subpackage.timewaster import r
+from subpackage.timewaster import r
 
 
 def x():
     print('x')
     y()
     z()
-    from . import big_import  # noqa
+    import big_import  # noqa
     a()
     r()
 
@@ -38,13 +37,6 @@ def a(count=5):
 
 if __name__ == "__main__":
     command = '''x()'''
-    profiler = hotshot.Profile(
-        "hotshot.profile", lineevents=True, linetimings=True
-    )
-    profiler.runctx(command, globals(), locals())
-    print(dir(profiler))
-    profiler.close()
-    print('hotshot line events', profiler.lineevents)
 
     profiler = cProfile.Profile(subcalls=True)
     profiler.runctx(command, globals(), locals())
@@ -53,7 +45,7 @@ if __name__ == "__main__":
 
     try:
         import line_profiler
-    except ImportError as err:
+    except ImportError:
         pass
     else:
         profiler = line_profiler.LineProfiler()
