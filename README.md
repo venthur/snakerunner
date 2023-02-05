@@ -17,8 +17,8 @@ and up to current best practices and standards.
 
 ### Requirements
 
-* Python3
-* wxpython 4
+* Python: 3.7+
+* wxPython: 4.2+
 
 
 ### Modifications since the Fork
@@ -32,6 +32,12 @@ and up to current best practices and standards.
 * Replaced logger.warn with logger.warning
 
 [RunSnakeRun]: http://www.vrplumber.com/programming/runsnakerun/
+
+### Start
+
+```shell
+python -m snakerunner 
+```
 
 ### Screenshot
 
