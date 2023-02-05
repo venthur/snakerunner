@@ -300,7 +300,7 @@ class MainFrame(wx.Frame):
         try:
             from snakerunner.resources import rsricon_png
             return getIcon(rsricon_png.data)
-        except Exception as err:
+        except Exception:
             return None
 
     sourceCodeControl = None
@@ -488,7 +488,7 @@ class MainFrame(wx.Frame):
         self.historyIndex -= 1
         try:
             self.RestoreHistory(self.history[self.historyIndex])
-        except IndexError as err:
+        except IndexError:
             self.SetStatusText(_('No further history available'))
 
     def OnRootView(self, event):
@@ -514,7 +514,7 @@ class MainFrame(wx.Frame):
         if filename and self.sourceFileShown != filename:
             try:
                 data = open(filename).read()
-            except Exception as err:
+            except Exception:
                 # TODO: load from zips/eggs? What about .pyc issues?
                 return None
             else:
@@ -570,7 +570,7 @@ class MainFrame(wx.Frame):
             if self.historyIndex < -1:
                 try:
                     del self.history[self.historyIndex+1:]
-                except AttributeError as err:
+                except AttributeError:
                     pass
             if (not self.history) or record != self.history[-1]:
                 self.history.append(record)
@@ -666,10 +666,10 @@ class MainFrame(wx.Frame):
             ]
             self.SetPosition((x, y))
             self.SetSize((width, height))
-        except configparser.NoSectionError as err:
+        except configparser.NoSectionError:
             # the file isn't written yet, so don't even warn...
             pass
-        except Exception as err:
+        except Exception:
             # this is just convenience, if it breaks in *any* way, ignore it...
             log.error(
                 "Unable to load window preferences, ignoring: %s", traceback.format_exc()
@@ -698,7 +698,7 @@ class MainFrame(wx.Frame):
             temp = config + '~'
             self.config.write(open(temp, 'w'))
             os.rename(temp, config)
-        except Exception as err:
+        except Exception:
             log.error("Unable to write window preferences, ignoring: %s",
                       traceback.format_exc())
         self.Destroy()
@@ -706,7 +706,7 @@ class MainFrame(wx.Frame):
 
 class RunSnakeRunApp(wx.App):
     """Basic application for holding the viewing Frame"""
-    #handler = wx.PNGHandler()
+    # handler = wx.PNGHandler()
 
     def OnInit(self):
         """Initialise the application"""

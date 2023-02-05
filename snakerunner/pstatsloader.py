@@ -19,7 +19,7 @@ class PStatsLoader(object):
         self.location_rows = {}
         self.stats = pstats.Stats(*filenames)
         self.tree = self.load(self.stats.stats)
-        self.location_tree = l = self.load_location()
+        self.location_tree = self.load_location()
 
     ROOTS = ['functions', 'location']
 
@@ -54,7 +54,7 @@ class PStatsLoader(object):
         for func, raw in stats.items():
             try:
                 rows[func] = row = PStatRow(func, raw)
-            except ValueError as err:
+            except ValueError:
                 log.info('Null row: %s', func)
         for row in rows.values():
             row.weave(rows)
@@ -177,7 +177,7 @@ class PStatRow(BaseStat):
         file, line, func = self.key = key
         try:
             dirname, basename = os.path.dirname(file), os.path.basename(file)
-        except ValueError as err:
+        except ValueError:
             dirname = ''
             basename = file
         nc, cc, tt, ct, callers = raw
@@ -220,7 +220,7 @@ class PStatRow(BaseStat):
         if total:
             try:
                 (cc, nc, tt, ct) = child.callers[self.key]
-            except TypeError as err:
+            except TypeError:
                 ct = child.callers[self.key]
             return float(ct)/total
         return 0

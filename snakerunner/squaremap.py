@@ -9,7 +9,6 @@ import wx
 import wx.lib.newevent
 
 log = logging.getLogger('squaremap')
-#log.setLevel( logging.DEBUG )
 
 SquareHighlightEvent, EVT_SQUARE_HIGHLIGHTED = wx.lib.newevent.NewEvent()
 SquareSelectionEvent, EVT_SQUARE_SELECTED = wx.lib.newevent.NewEvent()
@@ -225,7 +224,7 @@ class SquareMap(wx.Panel):
         self.UpdateDrawing()
 
     def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self, self._buffer)
+        wx.BufferedPaintDC(self, self._buffer)
 
     def OnSize(self, event):
         # The buffer is initialized in here, so that the buffer is always
@@ -415,9 +414,7 @@ class SquareMap(wx.Panel):
                     return
 
             (firstSize, firstNode) = nodes[-1]
-            fraction = firstSize/float(total)
-            head_coord, tail_coord = split_box(
-                firstSize/float(total), x, y, w, h)
+            head_coord, tail_coord = split_box(firstSize/float(total), x, y, w, h)
             if head_coord:
                 self.DrawBox(
                     dc, firstNode, head_coord[0], head_coord[1], head_coord[2], head_coord[3],
@@ -461,7 +458,7 @@ def split_box(fraction, x, y, w, h):
 
 def split_by_value(total, nodes, headdivisor=2.0):
     """Produce, (sum,head),(sum,tail) for nodes to attempt binary partition"""
-    head_sum, tail_sum = 0, 0
+    head_sum = 0
     divider = 0
     for node in nodes[::-1]:
         if head_sum < total/headdivisor:

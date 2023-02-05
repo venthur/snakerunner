@@ -17,8 +17,8 @@ else:
 
             # CUSTOMISATION POINT
             # import specialised generators here, such as for wxPython
-            #from resourcepackage import wxgenerators
-            #generators.update( wxgenerators.generators )
+            # from resourcepackage import wxgenerators
+            # generators.update( wxgenerators.generators )
         except ImportError:
             pass
         else:
