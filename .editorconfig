@@ -1,0 +1,19 @@
+; https://EditorConfig.org
+root = true
+
+[*.{py, css, scss, sass, less, js, ts, html, xhtml, json, txt, ini, yml, env, sh, cfg}]
+charset = utf-8
+max_line_length = 140
+
+[*.py]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[Makefile]
+indent_style = tab
+
+[*.{css, scss, sass, less, js, ts, html, xhtml, json}]
+indent_style = space
+indent_size = 2
