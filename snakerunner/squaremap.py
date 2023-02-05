@@ -265,7 +265,7 @@ class SquareMap(wx.Panel):
         ''' Return the default GUI font, scaled for printing if necessary. '''
         font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         scale = dc.GetPPI()[0] / wx.ScreenDC().GetPPI()[0]
-        font.SetPointSize(scale*font.GetPointSize())
+        font.SetPointSize(int(scale)*font.GetPointSize())
         return font
 
     def BrushForNode(self, node, depth=0):
@@ -318,11 +318,11 @@ class SquareMap(wx.Panel):
         if sys.platform == 'darwin':
             # Macs don't like drawing small rounded rects...
             if w < self.padding*2 or h < self.padding*2:
-                dc.DrawRectangle(dx, dy, dw, dh)
+                dc.DrawRectangle(int(dx), int(dy), int(dw), int(dh))
             else:
-                dc.DrawRoundedRectangle(dx, dy, dw, dh, self.padding)
+                dc.DrawRoundedRectangle(int(dx), int(dy), int(dw), int(dh), float(self.padding))
         else:
-            dc.DrawRoundedRectangle(dx, dy, dw, dh, self.padding*3)
+            dc.DrawRoundedRectangle(int(dx), int(dy), int(dw), int(dh), float(self.padding*3))
 #        self.DrawIconAndLabel(dc, node, x, y, w, h, depth)
         children_hot_map = []
         hot_map.append(
@@ -363,7 +363,7 @@ class SquareMap(wx.Panel):
         ''' Draw the icon, if any, and the label, if any, of the node. '''
         if w-2 < self._em_size_//2 or h-2 < self._em_size_ // 2:
             return
-        dc.SetClippingRegion(x+1, y+1, w-2, h-2)  # Don't draw outside the box
+        dc.SetClippingRegion(int(x+1), int(y+1), int(w-2), int(h-2))  # Don't draw outside the box
         try:
             icon = self.adapter.icon(node, node == self.selectedNode)
             if icon and h >= icon.GetHeight() and w >= icon.GetWidth():
@@ -373,7 +373,7 @@ class SquareMap(wx.Panel):
                 iconWidth = 0
             if self.labels and h >= dc.GetTextExtent('ABC')[1]:
                 dc.SetTextForeground(self.TextForegroundForNode(node, depth))
-                dc.DrawText(self.adapter.label(node), x + iconWidth + 2, y+2)
+                dc.DrawText(self.adapter.label(node), int(x + iconWidth + 2), int(y+2))
         finally:
             dc.DestroyClippingRegion()
 
