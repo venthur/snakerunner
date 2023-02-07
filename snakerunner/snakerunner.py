@@ -27,20 +27,18 @@ else:
 
 log = logging.getLogger(__name__)
 
-ID_OPEN = wx.NewId()
-ID_EXIT = wx.NewId()
+ID_OPEN = wx.NewIdRef(count=1)
+ID_EXIT = wx.NewIdRef(count=1)
 
-ID_TREE_TYPE = wx.NewId()
+ID_TREE_TYPE = wx.NewIdRef(count=1)
 
-#ID_PACKAGE_VIEW = wx.NewId()
-
-ID_PERCENTAGE_VIEW = wx.NewId()
-ID_ROOT_VIEW = wx.NewId()
-ID_BACK_VIEW = wx.NewId()
-ID_UP_VIEW = wx.NewId()
-ID_DEEPER_VIEW = wx.NewId()
-ID_SHALLOWER_VIEW = wx.NewId()
-ID_MORE_SQUARE = wx.NewId()
+ID_PERCENTAGE_VIEW = wx.NewIdRef(count=1)
+ID_ROOT_VIEW = wx.NewIdRef(count=1)
+ID_BACK_VIEW = wx.NewIdRef(count=1)
+ID_UP_VIEW = wx.NewIdRef(count=1)
+ID_DEEPER_VIEW = wx.NewIdRef(count=1)
+ID_SHALLOWER_VIEW = wx.NewIdRef(count=1)
+ID_MORE_SQUARE = wx.NewIdRef(count=1)
 
 PROFILE_VIEW_COLUMNS = [
     listviews.ColumnDefinition(
@@ -214,7 +212,6 @@ class MainFrame(wx.Frame):
         self.tabs.AddPage(self.callerListControl, _('Callers'), False)
         self.tabs.AddPage(self.allCallerListControl, _('All Callers'), False)
         self.tabs.AddPage(self.sourceCodeControl, _('Source Code'), False)
-        self.rightSplitter.SetSashSize(10)
         # calculate size as proportional value for initial display...
         self.LoadState(config_parser)
         width, height = self.GetSize()

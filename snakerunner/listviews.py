@@ -258,7 +258,7 @@ class DataView(wx.ListCtrl):
         self.reorder()
         self.Refresh()
 
-    indicated_attribute = wx.ListItemAttr()
+    indicated_attribute = wx.ItemAttr()
     indicated_attribute.SetBackgroundColour('#00ff00')
 
     def OnGetItemAttr(self, item):
