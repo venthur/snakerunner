@@ -3,4 +3,3 @@ max-line-length = 140
 exclude = venv*/*,
     build/*,
     dist/*,
-

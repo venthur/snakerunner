@@ -8,7 +8,6 @@
 * Removed macshim.py
 * Removed coldshot support
 
-
 ## Modifications since the Fork
 
 * Python3 compatibility
@@ -23,10 +22,13 @@
 
 * wxPython 4.2.0 compatibility
 * Fixed deprecation warning
+
+## [2.2.0] - 2023-02-07
+
 * Fixed top-level code environment
 * Modernized `setup.py`: updated and fixed installation meta
 * Modernized `version` control: rename `version.py` -> `vertion.txt`
 * Added `requirements.txt`
-* Added `.flake8` and fixed the code 
+* Added `.flake8` and fixed the code
 * Added `.editorconfig`
 * Updated application resource
