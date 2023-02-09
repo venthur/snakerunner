@@ -133,7 +133,7 @@ class DataView(wx.ListCtrl):
             node = self.sorted[event.GetIndex()]
         except AttributeError:
             pass
-        except IndexError as err:
+        except IndexError:
             log.warning(_('Invalid index in node activated: %(index)s'),
                         index=event.GetIndex())
         else:
@@ -149,7 +149,7 @@ class DataView(wx.ListCtrl):
             node = self.sorted[event.GetIndex()]
         except AttributeError:
             pass
-        except IndexError as err:
+        except IndexError:
             log.warning(_('Invalid index in node selected: %(index)s'),
                         index=event.GetIndex())
         else:
@@ -166,7 +166,7 @@ class DataView(wx.ListCtrl):
         if item > -1:
             try:
                 node = self.sorted[item]
-            except IndexError as err:
+            except IndexError:
                 log.warning(_('Invalid index in mouse move.'))
             else:
                 wx.PostEvent(
@@ -211,7 +211,7 @@ class DataView(wx.ListCtrl):
     def ReorderByColumn(self, column):
         """Reorder the set of records by column"""
         # TODO: store current selection and re-select after sorting...
-        single_column = self.SetNewOrder(column)
+        self.SetNewOrder(column)
         self.reorder(single_column=True)
         self.Refresh()
 
@@ -273,7 +273,7 @@ class DataView(wx.ListCtrl):
         try:
             column = self.columns[col]
             value = column.get(self.sorted[item])
-        except IndexError as err:
+        except IndexError:
             return ''
         else:
             if value is None:
@@ -283,7 +283,7 @@ class DataView(wx.ListCtrl):
             if column.format:
                 try:
                     return column.format % (value,)
-                except Exception as err:
+                except Exception:
                     log.warning('Column %s could not format %r value: %r',
                                 column.name, type(value), value)
                     value = column.get(self.sorted[item])
